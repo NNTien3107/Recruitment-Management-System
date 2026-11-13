@@ -49,6 +49,68 @@ MVP gồm **21 use case** trong tổng số 27 use case. Nhóm chọn đưa thê
 
 **Nâng cao nếu còn thời gian:** quên mật khẩu, xác thực email, lưu việc làm yêu thích.
 
+#### **Function Require**
+
+#### **Nhóm Auth và tài khoản**
+
+| Mã | Yêu cầu | Actor | Ưu tiên |
+| ----- | ----- | ----- | ----- |
+| FR-01 | Đăng ký tài khoản (chọn vai trò Candidate hoặc Recruiter) với email và mật khẩu | Guest | M |
+| FR-02 | Đăng nhập, hệ thống trả access token và refresh token | Mọi vai trò | M |
+| FR-03 | Đăng xuất, thu hồi refresh token | Mọi vai trò | M |
+| FR-04 | Làm mới access token bằng refresh token | Mọi vai trò | M |
+| FR-05 | Tài khoản bị khóa không thể đăng nhập hoặc dùng token cũ | Hệ thống | M |
+| FR-06 | Quên mật khẩu / đặt lại mật khẩu qua email | Mọi vai trò | C |
+| FR-07 | Xác thực email khi đăng ký | Guest | C |
+
+#### **Nhóm Candidate**
+
+| Mã | Yêu cầu | Ưu tiên |
+| ----- | ----- | ----- |
+| FR-08 | Xem và cập nhật thông tin cá nhân, hồ sơ nghề nghiệp (học vấn, kinh nghiệm, kỹ năng) | M |
+| FR-09 | Upload CV (PDF/DOCX), xem danh sách CV, xóa CV, đặt CV mặc định | M |
+| FR-10 | Ứng tuyển vào một tin bằng một CV đã upload, kèm thư giới thiệu (tùy chọn) | M |
+| FR-11 | Mỗi ứng viên chỉ ứng tuyển **một lần** cho mỗi tin | M |
+| FR-12 | Xem lịch sử ứng tuyển và trạng thái hiện tại, kèm lịch sử thay đổi trạng thái | M |
+| FR-13 | Rút đơn ứng tuyển khi chưa ở trạng thái cuối | S |
+| FR-14 | Xem lịch phỏng vấn của mình | S |
+| FR-15 | Nhận và xem thông báo trong hệ thống (in-app) | S |
+| FR-16 | Lưu việc làm yêu thích | C |
+
+#### **Nhóm tìm kiếm việc làm (Guest và Candidate)**
+
+| Mã | Yêu cầu | Ưu tiên |
+| ----- | ----- | ----- |
+| FR-17 | Tìm kiếm tin theo từ khóa (tiêu đề, mô tả) | M |
+| FR-18 | Lọc theo kỹ năng, địa điểm, mức lương, loại hình (full-time/part-time/intern), cấp độ | M |
+| FR-19 | Sắp xếp (mới nhất, lương) và phân trang | M |
+| FR-20 | Xem chi tiết tin và thông tin công ty. Chỉ hiển thị tin **đã được duyệt và đang mở** | M |
+
+#### **Nhóm Recruiter**
+
+| Mã | Yêu cầu | Ưu tiên |
+| ----- | ----- | ----- |
+| FR-21 | Tạo và cập nhật thông tin công ty (tên, mô tả, website, quy mô, địa chỉ, logo) | M |
+| FR-22 | Tạo tin tuyển dụng (trạng thái ban đầu: Draft hoặc Pending) | M |
+| FR-23 | Sửa, xóa mềm (soft delete) tin tuyển dụng của chính mình | M |
+| FR-24 | Đóng tin tuyển dụng (ngừng nhận hồ sơ) | M |
+| FR-25 | Xem danh sách ứng viên của từng tin, lọc theo trạng thái | M |
+| FR-26 | Xem hồ sơ ứng viên và tải CV | M |
+| FR-27 | Cập nhật trạng thái ứng tuyển theo workflow hợp lệ, có thể ghi chú | M |
+| FR-28 | Tạo, sửa, hủy lịch phỏng vấn cho một đơn ứng tuyển | S |
+| FR-29 | Gửi email thông báo khi đổi trạng thái hoặc có lịch phỏng vấn | S |
+| FR-30 | Dashboard: số tin, số hồ sơ, tỷ lệ theo trạng thái, hồ sơ theo thời gian | S |
+
+#### **Nhóm Admin**
+
+| Mã | Yêu cầu | Ưu tiên |
+| ----- | ----- | ----- |
+| FR-31 | Xem danh sách, tìm kiếm, lọc người dùng (Candidate, Recruiter) | M |
+| FR-32 | Khóa / mở khóa tài khoản | M |
+| FR-33 | Duyệt hoặc từ chối tin tuyển dụng (kèm lý do từ chối) | M |
+| FR-34 | Xem Dashboard tổng quan (số người dùng, tin, đơn ứng tuyển) | S |
+| FR-35 | Xem nhật ký hoạt động hệ thống (audit log) | S |
+
 4. ## **Business Rules**
 
 Các quy tắc này trở thành ràng buộc trong Database và logic trong service; người phụ trách module liên quan phải có test cho từng quy tắc.
