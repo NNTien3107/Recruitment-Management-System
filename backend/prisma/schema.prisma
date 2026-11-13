@@ -135,5 +135,4 @@ model ApplicationStatusHistory {
   createdAt     DateTime           @default(now())
 
   @@map("application_status_histories")
-  @@map("users")
 }
