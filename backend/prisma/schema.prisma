@@ -23,7 +23,8 @@ model User {
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
 
-  company Company? // chỉ Recruiter mới có (1-1)
+  company       Company? // chỉ Recruiter mới có (1-1)
+  notifications Notification[]
 
   @@map("users")
 }
@@ -107,4 +108,28 @@ model Job {
   @@index([salaryMin, salaryMax])
   @@index([skills], type: Gin) // lọc skills bằng hasSome
   @@map("jobs")
+}
+
+enum NotificationType {
+  APPLICATION_STATUS_CHANGED
+  INTERVIEW_SCHEDULED
+  INTERVIEW_RESCHEDULED
+  INTERVIEW_CANCELLED
+}
+
+model Notification {
+  id                 String           @id @default(uuid())
+  userId             String
+  type               NotificationType
+  payload            Json
+  createdAt          DateTime         @default(now())
+  emailAttempts      Int              @default(0)
+  emailNextAttemptAt DateTime?        @default(now())
+  emailSentAt        DateTime?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, createdAt])
+  @@index([emailNextAttemptAt])
+  @@map("notifications")
 }
