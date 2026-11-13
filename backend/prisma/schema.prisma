@@ -13,6 +13,7 @@ enum Role {
   ADMIN
 }
 
+<<<<<<< HEAD
 enum JobStatus {
   DRAFT
   PENDING
@@ -31,6 +32,8 @@ enum ApplicationStatus {
   WITHDRAWN
 }
 
+=======
+>>>>>>> fe2b2426904a9c146ffe57170b05212d678494a5
 model User {
   id           String   @id @default(uuid())
   email        String   @unique // BR-01
@@ -41,6 +44,7 @@ model User {
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
 
+<<<<<<< HEAD
   candidateProfile CandidateProfile?
   cvs              Cv[]
   applications     Application[]              @relation("CandidateApplications")
@@ -134,4 +138,7 @@ model ApplicationStatusHistory {
   createdAt     DateTime           @default(now())
 
   @@map("application_status_histories")
+=======
+  @@map("users")
+>>>>>>> fe2b2426904a9c146ffe57170b05212d678494a5
 }

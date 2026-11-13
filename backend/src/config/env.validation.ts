@@ -4,7 +4,10 @@ const envSchema = z.object({
   NODE_ENV: z.enum(['development', 'test', 'production']).default('development'),
   PORT: z.coerce.number().default(3000),
   DATABASE_URL: z.string().min(1),
+<<<<<<< HEAD
   STORAGE_DIR: z.string().default('uploads'),
+=======
+>>>>>>> fe2b2426904a9c146ffe57170b05212d678494a5
 });
 
 export type Env = z.infer<typeof envSchema>;

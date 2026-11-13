@@ -6,7 +6,10 @@ coverage/
 .env.*
 !.env.example
 uploads/
+<<<<<<< HEAD
 backend/uploads/
+=======
+>>>>>>> fe2b2426904a9c146ffe57170b05212d678494a5
 *.log
 .DS_Store
 .idea/
