@@ -22,7 +22,7 @@ model User {
   isLocked     Boolean  @default(false)
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
-
+  refreshTokens RefreshToken[]
   company Company? // chỉ Recruiter mới có (1-1)
 
   @@map("users")
@@ -107,4 +107,20 @@ model Job {
   @@index([salaryMin, salaryMax])
   @@index([skills], type: Gin) // lọc skills bằng hasSome
   @@map("jobs")
+}
+
+model RefreshToken {
+  id        String    @id @default(uuid())
+  userId    String
+  familyId  String
+  tokenHash String    @unique
+  expiresAt DateTime
+  revokedAt DateTime?
+  createdAt DateTime  @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([familyId])
+  @@map("refresh_tokens")
 }
