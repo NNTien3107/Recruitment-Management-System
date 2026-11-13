@@ -19,7 +19,7 @@ describe('CvsService', () => {
       count: jest.fn(),
     },
     application: {
-      count: jest.fn().mockResolvedValue(0),
+      count: jest.fn(),
       findFirst: jest.fn(),
     },
   };
@@ -30,8 +30,26 @@ describe('CvsService', () => {
     delete: jest.fn(),
   };
 
+  const createMockFile = (
+    buffer: Buffer,
+    originalname: string,
+    mimetype = 'application/octet-stream',
+  ): Express.Multer.File => ({
+    fieldname: 'file',
+    originalname,
+    encoding: '7bit',
+    mimetype,
+    size: buffer.length,
+    buffer,
+    stream: new Readable(),
+    destination: '',
+    filename: '',
+    path: '',
+  });
+
   beforeEach(async () => {
-    jest.resetAllMocks();
+    jest.clearAllMocks();
+    mockPrisma.application.count.mockResolvedValue(0);
 
     const module: TestingModule = await Test.createTestingModule({
       providers: [
@@ -48,11 +66,7 @@ describe('CvsService', () => {
     it('upload CV file PDF hợp lệ thành công (chữ ký %PDF-)', async () => {
       // Buffer bắt đầu bằng chữ ký nhị phân %PDF-
       const validPdfBuffer = Buffer.from('%PDF-1.4 sample content');
-      const mockFile = {
-        buffer: validPdfBuffer,
-        originalname: 'NguyenVanA_Resume.pdf',
-        size: validPdfBuffer.length,
-      };
+      const mockFile = createMockFile(validPdfBuffer, 'NguyenVanA_Resume.pdf');
 
       mockStorageService.upload.mockResolvedValue({
         key: 'cvs/uuid-123.pdf',
@@ -71,7 +85,7 @@ describe('CvsService', () => {
         isDefault: true,
       });
 
-      const result: unknown = await service.upload('cand-1', mockFile);
+      const result = await service.upload('cand-1', mockFile);
 
       expect(mockStorageService.upload).toHaveBeenCalledWith(
         expect.objectContaining({ mimetype: 'application/pdf' }),
@@ -90,11 +104,7 @@ describe('CvsService', () => {
     it('upload CV file DOCX hợp lệ thành công (chữ ký PK\x03\x04)', async () => {
       // Buffer bắt đầu bằng chữ ký nhị phân PK\x03\x04 (ZIP)
       const validDocxBuffer = Buffer.from([0x50, 0x4b, 0x03, 0x04, 0x14, 0x00, 0x06, 0x00]);
-      const mockFile = {
-        buffer: validDocxBuffer,
-        originalname: 'my-resume.docx',
-        size: validDocxBuffer.length,
-      };
+      const mockFile = createMockFile(validDocxBuffer, 'my-resume.docx');
 
       mockStorageService.upload.mockResolvedValue({
         key: 'cvs/uuid-docx.docx',
@@ -112,18 +122,17 @@ describe('CvsService', () => {
         isDefault: false,
       });
 
-      const result: { id: string } = await service.upload('cand-1', mockFile);
+      const result = await service.upload('cand-1', mockFile);
 
       expect(result.id).toBe('cv-docx');
     });
 
     it('từ chối file giả mạo đuôi extension có nội dung không phải PDF/DOCX', async () => {
       // File text giả mạo đuôi .pdf
-      const fakeFile = {
-        buffer: Buffer.from('Plain text content masquerading as PDF'),
-        originalname: 'fake.pdf',
-        size: 38,
-      };
+      const fakeFile = createMockFile(
+        Buffer.from('Plain text content masquerading as PDF'),
+        'fake.pdf',
+      );
 
       await expect(service.upload('cand-1', fakeFile)).rejects.toBeInstanceOf(BadRequestException);
       expect(mockStorageService.upload).not.toHaveBeenCalled();
@@ -133,11 +142,7 @@ describe('CvsService', () => {
       const oversizedBuffer = Buffer.alloc(6 * 1024 * 1024); // 6MB
       oversizedBuffer.write('%PDF-', 0);
 
-      const largeFile = {
-        buffer: oversizedBuffer,
-        originalname: 'huge.pdf',
-        size: oversizedBuffer.length,
-      };
+      const largeFile = createMockFile(oversizedBuffer, 'huge.pdf');
 
       await expect(service.upload('cand-1', largeFile)).rejects.toThrow(
         'Kích thước file CV không được vượt quá 5MB',
