@@ -13,29 +13,12 @@ enum Role {
   ADMIN
 }
 
-model User {
-  id           String   @id @default(uuid())
-  email        String   @unique // BR-01
-  passwordHash String
-  fullName     String
-  role         Role     @default(CANDIDATE)
-  isLocked     Boolean  @default(false)
-  createdAt    DateTime @default(now())
-  updatedAt    DateTime @updatedAt
-
-  company Company? // chỉ Recruiter mới có (1-1)
-
-  @@map("users")
-}
-
-// ===================== Company & Jobs (Nam) =====================
-
 enum JobStatus {
-  DRAFT // Recruiter đang soạn
-  PENDING // chờ Admin duyệt
-  APPROVED // hiển thị công khai
-  REJECTED // Admin từ chối (kèm rejectReason)
-  CLOSED // Recruiter đóng tin
+  DRAFT
+  PENDING
+  APPROVED
+  REJECTED
+  CLOSED
 }
 
 enum JobType {
@@ -56,16 +39,45 @@ enum JobLevel {
   MANAGER
 }
 
+enum ApplicationStatus {
+  APPLIED
+  REVIEWING
+  INTERVIEW_SCHEDULED
+  OFFERED
+  ACCEPTED
+  REJECTED
+  WITHDRAWN
+}
+
+model User {
+  id           String   @id @default(uuid())
+  email        String   @unique
+  passwordHash String
+  fullName     String
+  role         Role     @default(CANDIDATE)
+  isLocked     Boolean  @default(false)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  company          Company?
+  candidateProfile CandidateProfile?
+  cvs              Cv[]
+  applications     Application[]              @relation("CandidateApplications")
+  statusChanges    ApplicationStatusHistory[]
+
+  @@map("users")
+}
+
 model Company {
   id          String   @id @default(uuid())
-  ownerId     String   @unique // 1 Recruiter = 1 công ty (UC13)
+  ownerId     String   @unique
   name        String
   description String?
   website     String?
-  logoUrl     String? // lưu qua StorageService
+  logoUrl     String?
   address     String?
   industry    String?
-  size        String? // vd: "1-50", "51-200"
+  size        String?
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
@@ -73,6 +85,42 @@ model Company {
   jobs  Job[]
 
   @@map("companies")
+}
+
+model CandidateProfile {
+  id         String   @id @default(uuid())
+  userId     String   @unique
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  phone      String?
+  address    String?
+  title      String?
+  bio        String?
+  skills     String[] @default([])
+  experience Json?
+  education  Json?
+  avatarUrl  String?
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  @@map("candidate_profiles")
+}
+
+model Cv {
+  id           String   @id @default(uuid())
+  candidateId  String
+  candidate    User     @relation(fields: [candidateId], references: [id], onDelete: Cascade)
+  name         String
+  fileKey      String
+  originalName String
+  mimeType     String
+  fileSize     Int
+  isDefault    Boolean  @default(false)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  applications Application[]
+
+  @@map("cvs")
 }
 
 model Job {
@@ -84,27 +132,61 @@ model Job {
   benefits     String?
   location     String
   skills       String[]
-  salaryMin    Int? // VND/tháng, null = thỏa thuận
+  salaryMin    Int?
   salaryMax    Int?
   jobType      JobType
   level        JobLevel
   status       JobStatus @default(DRAFT)
-  rejectReason String? // UC23
-  deadline     DateTime? // hết hạn nộp đơn (BR-03)
+  rejectReason String?
+  deadline     DateTime?
   approvedAt   DateTime?
   closedAt     DateTime?
-  deletedAt    DateTime? // xóa mềm (BR-05)
+  deletedAt    DateTime?
   createdAt    DateTime  @default(now())
   updatedAt    DateTime  @updatedAt
 
-  company Company @relation(fields: [companyId], references: [id], onDelete: Restrict)
+  company      Company       @relation(fields: [companyId], references: [id], onDelete: Restrict)
+  applications Application[]
 
   @@index([companyId])
-  @@index([status, deletedAt, createdAt]) // danh sách công khai
+  @@index([status, deletedAt, createdAt])
   @@index([location])
   @@index([jobType])
   @@index([level])
   @@index([salaryMin, salaryMax])
-  @@index([skills], type: Gin) // lọc skills bằng hasSome
+  @@index([skills], type: Gin)
   @@map("jobs")
+}
+
+model Application {
+  id          String            @id @default(uuid())
+  candidateId String
+  candidate   User              @relation("CandidateApplications", fields: [candidateId], references: [id], onDelete: Cascade)
+  jobId       String
+  job         Job               @relation(fields: [jobId], references: [id], onDelete: Cascade)
+  cvId        String
+  cv          Cv                @relation(fields: [cvId], references: [id], onDelete: Restrict)
+  coverLetter String?
+  status      ApplicationStatus @default(APPLIED)
+  createdAt   DateTime          @default(now())
+  updatedAt   DateTime          @updatedAt
+
+  statusHistory ApplicationStatusHistory[]
+
+  @@unique([candidateId, jobId])
+  @@map("applications")
+}
+
+model ApplicationStatusHistory {
+  id            String             @id @default(uuid())
+  applicationId String
+  application   Application        @relation(fields: [applicationId], references: [id], onDelete: Cascade)
+  fromStatus    ApplicationStatus?
+  toStatus      ApplicationStatus
+  changedById   String
+  changedBy     User               @relation(fields: [changedById], references: [id], onDelete: Cascade)
+  note          String?
+  createdAt     DateTime           @default(now())
+
+  @@map("application_status_histories")
 }

@@ -8,7 +8,12 @@ import { ResponseInterceptor } from './common/interceptors/response.interceptor'
 import { validateEnv } from './config/env.validation';
 import { HealthController } from './health/health.controller';
 import { PrismaModule } from './prisma/prisma.module';
+import { StorageModule } from './common/storage/storage.module';
 import { UsersModule } from './users/users.module';
+import { CandidatesModule } from './candidates/candidates.module';
+import { CvsModule } from './cvs/cvs.module';
+import { NotificationsModule } from './notifications/notifications.module';
+import { ApplicationsModule } from './applications/applications.module';
 import { CompaniesModule } from './companies/companies.module';
 import { AuthModule } from './auth/auth.module';
 import { JobsModule } from './jobs/jobs.module';
@@ -20,6 +25,12 @@ import { JobsModule } from './jobs/jobs.module';
       validate: validateEnv,
     }),
     PrismaModule,
+    StorageModule,
+    NotificationsModule,
+    UsersModule,
+    CandidatesModule,
+    CvsModule,
+    ApplicationsModule,
     UsersModule,
     CompaniesModule,
     AuthModule,
