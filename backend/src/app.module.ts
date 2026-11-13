@@ -11,6 +11,7 @@ import { PrismaModule } from './prisma/prisma.module';
 <<<<<<< HEAD
 import { StorageModule } from './common/storage/storage.module';
 import { UsersModule } from './users/users.module';
+<<<<<<< HEAD
 import { CandidatesModule } from './candidates/candidates.module';
 import { CvsModule } from './cvs/cvs.module';
 import { NotificationsModule } from './notifications/notifications.module';
@@ -18,6 +19,10 @@ import { ApplicationsModule } from './applications/applications.module';
 =======
 import { UsersModule } from './users/users.module';
 >>>>>>> fe2b2426904a9c146ffe57170b05212d678494a5
+=======
+import { CompaniesModule } from './companies/companies.module';
+import { JobsModule } from './jobs/jobs.module';
+>>>>>>> 16e6886ca78d8c01c42976428d8d617fe59d81a5
 @Module({
   imports: [
     ConfigModule.forRoot({
@@ -29,12 +34,17 @@ import { UsersModule } from './users/users.module';
     StorageModule,
     NotificationsModule,
     UsersModule,
+<<<<<<< HEAD
     CandidatesModule,
     CvsModule,
     ApplicationsModule,
 =======
     UsersModule,
 >>>>>>> fe2b2426904a9c146ffe57170b05212d678494a5
+=======
+    CompaniesModule,
+    JobsModule,
+>>>>>>> 16e6886ca78d8c01c42976428d8d617fe59d81a5
   ],
   controllers: [AppController, HealthController],
   providers: [

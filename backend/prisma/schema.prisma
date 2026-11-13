@@ -45,15 +45,20 @@ model User {
   updatedAt    DateTime @updatedAt
 
 <<<<<<< HEAD
+<<<<<<< HEAD
   candidateProfile CandidateProfile?
   cvs              Cv[]
   applications     Application[]              @relation("CandidateApplications")
   postedJobs       Job[]
   statusChanges    ApplicationStatusHistory[]
+=======
+  company Company? // chỉ Recruiter mới có (1-1)
+>>>>>>> 16e6886ca78d8c01c42976428d8d617fe59d81a5
 
   @@map("users")
 }
 
+<<<<<<< HEAD
 model CandidateProfile {
   id         String   @id @default(uuid())
   userId     String   @unique
@@ -142,3 +147,85 @@ model ApplicationStatusHistory {
   @@map("users")
 >>>>>>> fe2b2426904a9c146ffe57170b05212d678494a5
 }
+=======
+// ===================== Company & Jobs (Nam) =====================
+
+enum JobStatus {
+  DRAFT // Recruiter đang soạn
+  PENDING // chờ Admin duyệt
+  APPROVED // hiển thị công khai
+  REJECTED // Admin từ chối (kèm rejectReason)
+  CLOSED // Recruiter đóng tin
+}
+
+enum JobType {
+  FULL_TIME
+  PART_TIME
+  INTERNSHIP
+  CONTRACT
+  REMOTE
+}
+
+enum JobLevel {
+  INTERN
+  FRESHER
+  JUNIOR
+  MIDDLE
+  SENIOR
+  LEAD
+  MANAGER
+}
+
+model Company {
+  id          String   @id @default(uuid())
+  ownerId     String   @unique // 1 Recruiter = 1 công ty (UC13)
+  name        String
+  description String?
+  website     String?
+  logoUrl     String? // lưu qua StorageService
+  address     String?
+  industry    String?
+  size        String? // vd: "1-50", "51-200"
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  owner User  @relation(fields: [ownerId], references: [id], onDelete: Restrict)
+  jobs  Job[]
+
+  @@map("companies")
+}
+
+model Job {
+  id           String    @id @default(uuid())
+  companyId    String
+  title        String
+  description  String
+  requirements String?
+  benefits     String?
+  location     String
+  skills       String[]
+  salaryMin    Int? // VND/tháng, null = thỏa thuận
+  salaryMax    Int?
+  jobType      JobType
+  level        JobLevel
+  status       JobStatus @default(DRAFT)
+  rejectReason String? // UC23
+  deadline     DateTime? // hết hạn nộp đơn (BR-03)
+  approvedAt   DateTime?
+  closedAt     DateTime?
+  deletedAt    DateTime? // xóa mềm (BR-05)
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+
+  company Company @relation(fields: [companyId], references: [id], onDelete: Restrict)
+
+  @@index([companyId])
+  @@index([status, deletedAt, createdAt]) // danh sách công khai
+  @@index([location])
+  @@index([jobType])
+  @@index([level])
+  @@index([salaryMin, salaryMax])
+  @@index([skills], type: Gin) // lọc skills bằng hasSome
+  @@map("jobs")
+}
+>>>>>>> 16e6886ca78d8c01c42976428d8d617fe59d81a5
