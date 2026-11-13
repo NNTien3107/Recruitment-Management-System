@@ -11,6 +11,7 @@ import { PrismaModule } from './prisma/prisma.module';
 import { UsersModule } from './users/users.module';
 import { CompaniesModule } from './companies/companies.module';
 import { JobsModule } from './jobs/jobs.module';
+import { NotificationsModule } from './notifications/notifications.module';
 @Module({
   imports: [
     ConfigModule.forRoot({
@@ -21,6 +22,7 @@ import { JobsModule } from './jobs/jobs.module';
     UsersModule,
     CompaniesModule,
     JobsModule,
+    NotificationsModule,
   ],
   controllers: [AppController, HealthController],
   providers: [
