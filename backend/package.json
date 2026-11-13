@@ -75,14 +75,11 @@
     ],
     "coverageDirectory": "../coverage",
     "testEnvironment": "node"
-<<<<<<< HEAD
   },
   "allowScripts": {
     "@prisma/client@6.19.3": true,
     "@prisma/engines@6.19.3": true,
     "prisma@6.19.3": true,
     "argon2@0.45.2": true
-=======
->>>>>>> fe2b2426904a9c146ffe57170b05212d678494a5
   }
 }
