@@ -7,6 +7,12 @@ import { UsersService } from '../users/users.service';
 import { AuthService } from './auth.service';
 import { RefreshTokensService } from './refresh-tokens.service';
 
+// refresh-tokens.service.ts import @nestjs/config (ESM) mà Jest chưa nạp được.
+// Test này chỉ dùng nó làm DI token, nên thay bằng class rỗng.
+jest.mock('./refresh-tokens.service', () => ({
+  RefreshTokensService: class RefreshTokensService {},
+}));
+
 describe('AuthService', () => {
   let service: AuthService;
   let passwordHash: string;
