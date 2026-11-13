@@ -112,7 +112,7 @@ describe('CvsService', () => {
         isDefault: false,
       });
 
-      const result: unknown = await service.upload('cand-1', mockFile);
+      const result: { id: string } = await service.upload('cand-1', mockFile);
 
       expect(result.id).toBe('cv-docx');
     });
