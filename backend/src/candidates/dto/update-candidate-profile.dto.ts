@@ -1,12 +1,6 @@
 import { ApiPropertyOptional } from '@nestjs/swagger';
 import { Type } from 'class-transformer';
-import {
-  IsArray,
-  IsOptional,
-  IsString,
-  MaxLength,
-  ValidateNested,
-} from 'class-validator';
+import { IsArray, IsOptional, IsString, MaxLength, ValidateNested } from 'class-validator';
 
 export class ExperienceItemDto {
   @ApiPropertyOptional({ example: 'Công ty Công nghệ ABC' })
@@ -132,4 +126,3 @@ export class UpdateCandidateProfileDto {
   @IsString()
   avatarUrl?: string;
 }
-

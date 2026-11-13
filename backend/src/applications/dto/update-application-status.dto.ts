@@ -20,4 +20,3 @@ export class UpdateApplicationStatusDto {
   @MaxLength(500)
   note?: string;
 }
-

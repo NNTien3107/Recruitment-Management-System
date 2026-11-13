@@ -8,4 +8,3 @@ import { CandidatesService } from './candidates.service';
   exports: [CandidatesService],
 })
 export class CandidatesModule {}
-

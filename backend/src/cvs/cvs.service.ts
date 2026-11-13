@@ -143,7 +143,7 @@ export class CvsService {
         const hasApplied = await this.prisma.application.findFirst({
           where: {
             cvId: cv.id,
-            job: { recruiterId: requester.id },
+            job: { company: { ownerId: requester.id } },
           },
         });
         if (!hasApplied) {
@@ -203,9 +203,7 @@ export class CvsService {
       where: { cvId: id },
     });
     if (activeApplicationsCount > 0) {
-      throw new BadRequestException(
-        'Không thể xóa CV này vì đã được sử dụng trong đơn ứng tuyển',
-      );
+      throw new BadRequestException('Không thể xóa CV này vì đã được sử dụng trong đơn ứng tuyển');
     }
 
     // 1. Xóa file khỏi ổ đĩa
@@ -221,4 +219,3 @@ export class CvsService {
     return { message: 'Đã xóa CV thành công' };
   }
 }
-

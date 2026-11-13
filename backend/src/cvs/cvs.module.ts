@@ -8,4 +8,3 @@ import { CvsService } from './cvs.service';
   exports: [CvsService],
 })
 export class CvsModule {}
-

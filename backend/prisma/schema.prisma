@@ -13,13 +13,30 @@ enum Role {
   ADMIN
 }
 
-
 enum JobStatus {
   DRAFT
   PENDING
   APPROVED
-  CLOSED
   REJECTED
+  CLOSED
+}
+
+enum JobType {
+  FULL_TIME
+  PART_TIME
+  INTERNSHIP
+  CONTRACT
+  REMOTE
+}
+
+enum JobLevel {
+  INTERN
+  FRESHER
+  JUNIOR
+  MIDDLE
+  SENIOR
+  LEAD
+  MANAGER
 }
 
 enum ApplicationStatus {
@@ -34,7 +51,7 @@ enum ApplicationStatus {
 
 model User {
   id           String   @id @default(uuid())
-  email        String   @unique // BR-01
+  email        String   @unique
   passwordHash String
   fullName     String
   role         Role     @default(CANDIDATE)
@@ -42,13 +59,32 @@ model User {
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
 
+  company          Company?
   candidateProfile CandidateProfile?
   cvs              Cv[]
   applications     Application[]              @relation("CandidateApplications")
-  postedJobs       Job[]
   statusChanges    ApplicationStatusHistory[]
 
   @@map("users")
+}
+
+model Company {
+  id          String   @id @default(uuid())
+  ownerId     String   @unique
+  name        String
+  description String?
+  website     String?
+  logoUrl     String?
+  address     String?
+  industry    String?
+  size        String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  owner User  @relation(fields: [ownerId], references: [id], onDelete: Restrict)
+  jobs  Job[]
+
+  @@map("companies")
 }
 
 model CandidateProfile {
@@ -57,11 +93,11 @@ model CandidateProfile {
   user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   phone      String?
   address    String?
-  title      String?  // Chức danh / Vị trí mong muốn (vd: Frontend Engineer)
-  bio        String?  // Giới thiệu bản thân
+  title      String?
+  bio        String?
   skills     String[] @default([])
-  experience Json?    // Danh sách kinh nghiệm làm việc: [{ company, position, startDate, endDate, description }]
-  education  Json?    // Danh sách học vấn: [{ school, degree, major, startDate, endDate }]
+  experience Json?
+  education  Json?
   avatarUrl  String?
   createdAt  DateTime @default(now())
   updatedAt  DateTime @updatedAt
@@ -73,11 +109,11 @@ model Cv {
   id           String   @id @default(uuid())
   candidateId  String
   candidate    User     @relation(fields: [candidateId], references: [id], onDelete: Cascade)
-  name         String   // Tên gợi nhớ của CV, vd: "CV Tiếng Anh", "CV Backend"
-  fileKey      String   // Khóa định danh file trong StorageService (vd: 'cvs/uuid.pdf')
-  originalName String   // Tên file gốc lúc tải lên (vd: 'NguyenVanA_Resume.pdf')
-  mimeType     String   // 'application/pdf' hoặc 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
-  fileSize     Int      // Kích thước bytes
+  name         String
+  fileKey      String
+  originalName String
+  mimeType     String
+  fileSize     Int
   isDefault    Boolean  @default(false)
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
@@ -88,38 +124,56 @@ model Cv {
 }
 
 model Job {
-  id           String        @id @default(uuid())
-  recruiterId  String
-  recruiter    User          @relation(fields: [recruiterId], references: [id], onDelete: Cascade)
+  id           String    @id @default(uuid())
+  companyId    String
   title        String
-  description  String?
-  status       JobStatus     @default(DRAFT)
+  description  String
+  requirements String?
+  benefits     String?
+  location     String
+  skills       String[]
+  salaryMin    Int?
+  salaryMax    Int?
+  jobType      JobType
+  level        JobLevel
+  status       JobStatus @default(DRAFT)
+  rejectReason String?
   deadline     DateTime?
-  deletedAt    DateTime?     // BR-05: Xóa mềm
-  createdAt    DateTime      @default(now())
-  updatedAt    DateTime      @updatedAt
+  approvedAt   DateTime?
+  closedAt     DateTime?
+  deletedAt    DateTime?
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
 
+  company      Company       @relation(fields: [companyId], references: [id], onDelete: Restrict)
   applications Application[]
 
+  @@index([companyId])
+  @@index([status, deletedAt, createdAt])
+  @@index([location])
+  @@index([jobType])
+  @@index([level])
+  @@index([salaryMin, salaryMax])
+  @@index([skills], type: Gin)
   @@map("jobs")
 }
 
 model Application {
-  id             String                     @id @default(uuid())
-  candidateId    String
-  candidate      User                       @relation("CandidateApplications", fields: [candidateId], references: [id], onDelete: Cascade)
-  jobId          String
-  job            Job                        @relation(fields: [jobId], references: [id], onDelete: Cascade)
-  cvId           String
-  cv             Cv                         @relation(fields: [cvId], references: [id], onDelete: Restrict)
-  coverLetter    String?
-  status         ApplicationStatus          @default(APPLIED)
-  createdAt      DateTime                   @default(now())
-  updatedAt      DateTime                   @updatedAt
+  id          String            @id @default(uuid())
+  candidateId String
+  candidate   User              @relation("CandidateApplications", fields: [candidateId], references: [id], onDelete: Cascade)
+  jobId       String
+  job         Job               @relation(fields: [jobId], references: [id], onDelete: Cascade)
+  cvId        String
+  cv          Cv                @relation(fields: [cvId], references: [id], onDelete: Restrict)
+  coverLetter String?
+  status      ApplicationStatus @default(APPLIED)
+  createdAt   DateTime          @default(now())
+  updatedAt   DateTime          @updatedAt
 
-  statusHistory  ApplicationStatusHistory[]
+  statusHistory ApplicationStatusHistory[]
 
-  @@unique([candidateId, jobId]) // BR-02: Mỗi ứng viên chỉ nộp một đơn cho một tin
+  @@unique([candidateId, jobId])
   @@map("applications")
 }
 

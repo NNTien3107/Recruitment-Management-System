@@ -14,8 +14,13 @@ export interface RequestUser {
  * để thuận tiện cho việc kiểm thử API và Swagger.
  */
 export const CurrentUser = createParamDecorator(
-  (data: keyof RequestUser | undefined, ctx: ExecutionContext): RequestUser | string | undefined => {
-    const request = ctx.switchToHttp().getRequest();
+  (
+    data: keyof RequestUser | undefined,
+    ctx: ExecutionContext,
+  ): RequestUser | string | undefined => {
+    const request = ctx
+      .switchToHttp()
+      .getRequest<{ user?: RequestUser; headers: Record<string, string | string[] | undefined> }>();
     const user: RequestUser | undefined =
       request.user ||
       (request.headers['x-user-id']
@@ -32,4 +37,3 @@ export const CurrentUser = createParamDecorator(
     return data ? user[data] : user;
   },
 );
-

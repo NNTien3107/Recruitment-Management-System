@@ -40,11 +40,7 @@ export class RecruiterApplicationsController {
     if (!recruiterId) {
       throw new UnauthorizedException('Vui lòng đăng nhập với tư cách Nhà tuyển dụng');
     }
-    return this.applicationsService.getJobApplicationsForRecruiter(
-      jobId,
-      recruiterId,
-      query,
-    );
+    return this.applicationsService.getJobApplicationsForRecruiter(jobId, recruiterId, query);
   }
 
   // TODO: @UseGuards(JwtAuthGuard, RolesGuard)
@@ -88,10 +84,7 @@ export class RecruiterApplicationsController {
       throw new UnauthorizedException('Vui lòng đăng nhập');
     }
 
-    const { cv, storedFile } = await this.applicationsService.downloadApplicantCv(
-      id,
-      recruiterId,
-    );
+    const { cv, storedFile } = await this.applicationsService.downloadApplicantCv(id, recruiterId);
 
     const safeFilename = encodeURIComponent(cv.originalName);
     res.setHeader('Content-Type', cv.mimeType || 'application/octet-stream');
@@ -125,4 +118,3 @@ export class RecruiterApplicationsController {
     return this.applicationsService.updateStatus(id, recruiterId, dto);
   }
 }
-

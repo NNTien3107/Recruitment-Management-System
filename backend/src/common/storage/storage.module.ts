@@ -14,4 +14,3 @@ import { StorageService } from './storage.interface';
   exports: [StorageService, LocalStorageService],
 })
 export class StorageModule {}
-

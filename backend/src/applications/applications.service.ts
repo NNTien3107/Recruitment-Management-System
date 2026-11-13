@@ -155,7 +155,7 @@ export class ApplicationsService {
     const application = await this.prisma.application.findUnique({
       where: { id },
       include: {
-        job: true,
+        job: { include: { company: { select: { ownerId: true } } } },
         cv: true,
         statusHistory: {
           orderBy: { createdAt: 'asc' },
@@ -188,12 +188,15 @@ export class ApplicationsService {
     recruiterId: string,
     query: QueryApplicationsDto,
   ) {
-    const job = await this.prisma.job.findUnique({ where: { id: jobId } });
+    const job = await this.prisma.job.findUnique({
+      where: { id: jobId },
+      include: { company: { select: { ownerId: true } } },
+    });
     if (!job) {
       throw new NotFoundException('Không tìm thấy tin tuyển dụng');
     }
 
-    if (job.recruiterId !== recruiterId) {
+    if (job.company.ownerId !== recruiterId) {
       throw new ForbiddenException('Bạn không có quyền quản lý ứng viên của tin tuyển dụng này');
     }
 
@@ -253,7 +256,7 @@ export class ApplicationsService {
     const application = await this.prisma.application.findUnique({
       where: { id: applicationId },
       include: {
-        job: true,
+        job: { include: { company: { select: { ownerId: true } } } },
         candidate: {
           select: {
             id: true,
@@ -282,7 +285,7 @@ export class ApplicationsService {
       throw new NotFoundException('Không tìm thấy đơn ứng tuyển');
     }
 
-    if (application.job.recruiterId !== recruiterId) {
+    if (application.job.company.ownerId !== recruiterId) {
       throw new ForbiddenException('Bạn không có quyền xem đơn ứng tuyển này');
     }
 
@@ -295,21 +298,17 @@ export class ApplicationsService {
    * - Ghi nhận 1 dòng log vào `ApplicationStatusHistory`.
    * - Kích hoạt `NotificationService` để gửi email/thông báo cho ứng viên.
    */
-  async updateStatus(
-    applicationId: string,
-    recruiterId: string,
-    dto: UpdateApplicationStatusDto,
-  ) {
+  async updateStatus(applicationId: string, recruiterId: string, dto: UpdateApplicationStatusDto) {
     const application = await this.prisma.application.findUnique({
       where: { id: applicationId },
-      include: { job: true },
+      include: { job: { include: { company: { select: { ownerId: true } } } } },
     });
 
     if (!application) {
       throw new NotFoundException('Không tìm thấy đơn ứng tuyển');
     }
 
-    if (application.job.recruiterId !== recruiterId) {
+    if (application.job.company.ownerId !== recruiterId) {
       throw new ForbiddenException('Bạn không có quyền thao tác trên đơn ứng tuyển này');
     }
 
@@ -348,17 +347,13 @@ export class ApplicationsService {
     });
 
     // Bắn sự kiện thông báo (Thành viên Thành sẽ nhận sự kiện này để gửi email)
-    await this.notificationService.notify(
-      application.candidateId,
-      'APPLICATION_STATUS_CHANGED',
-      {
-        applicationId,
-        jobTitle: updatedApplication.job.title,
-        fromStatus: currentStatus,
-        toStatus: newStatus,
-        note: dto.note,
-      },
-    );
+    await this.notificationService.notify(application.candidateId, 'APPLICATION_STATUS_CHANGED', {
+      applicationId,
+      jobTitle: updatedApplication.job.title,
+      fromStatus: currentStatus,
+      toStatus: newStatus,
+      note: dto.note,
+    });
 
     return updatedApplication;
   }
@@ -370,7 +365,7 @@ export class ApplicationsService {
     const application = await this.prisma.application.findUnique({
       where: { id: applicationId },
       include: {
-        job: true,
+        job: { include: { company: { select: { ownerId: true } } } },
         cv: true,
       },
     });
@@ -379,7 +374,7 @@ export class ApplicationsService {
       throw new NotFoundException('Không tìm thấy đơn ứng tuyển');
     }
 
-    if (application.job.recruiterId !== recruiterId) {
+    if (application.job.company.ownerId !== recruiterId) {
       throw new ForbiddenException('Bạn không có quyền tải CV của đơn ứng tuyển này');
     }
 
@@ -391,4 +386,3 @@ export class ApplicationsService {
     };
   }
 }
-

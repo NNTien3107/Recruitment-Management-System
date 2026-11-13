@@ -20,10 +20,7 @@ describe('CandidatesService', () => {
     jest.resetAllMocks();
 
     const module: TestingModule = await Test.createTestingModule({
-      providers: [
-        CandidatesService,
-        { provide: PrismaService, useValue: mockPrismaService },
-      ],
+      providers: [CandidatesService, { provide: PrismaService, useValue: mockPrismaService }],
     }).compile();
 
     service = module.get<CandidatesService>(CandidatesService);
@@ -75,9 +72,7 @@ describe('CandidatesService', () => {
     it('báo lỗi NotFoundException nếu không tìm thấy người dùng', async () => {
       mockPrismaService.user.findUnique.mockResolvedValue(null);
 
-      await expect(service.getProfile('unknown-id')).rejects.toBeInstanceOf(
-        NotFoundException,
-      );
+      await expect(service.getProfile('unknown-id')).rejects.toBeInstanceOf(NotFoundException);
     });
   });
 
@@ -85,9 +80,9 @@ describe('CandidatesService', () => {
     it('báo lỗi NotFoundException nếu người dùng không tồn tại', async () => {
       mockPrismaService.user.findUnique.mockResolvedValue(null);
 
-      await expect(
-        service.updateProfile('u-unknown', { title: 'Tester' }),
-      ).rejects.toBeInstanceOf(NotFoundException);
+      await expect(service.updateProfile('u-unknown', { title: 'Tester' })).rejects.toBeInstanceOf(
+        NotFoundException,
+      );
     });
 
     it('cập nhật họ tên người dùng và upsert thông tin hồ sơ', async () => {
@@ -119,4 +114,3 @@ describe('CandidatesService', () => {
     });
   });
 });
-

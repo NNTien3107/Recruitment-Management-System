@@ -25,4 +25,3 @@ export class CreateApplicationDto {
   @MaxLength(2000)
   coverLetter?: string;
 }
-

@@ -1,10 +1,4 @@
-import {
-  Body,
-  Controller,
-  Get,
-  Put,
-  UnauthorizedException,
-} from '@nestjs/common';
+import { Body, Controller, Get, Put, UnauthorizedException } from '@nestjs/common';
 import { ApiHeader, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { CurrentUser } from '../common/decorators/current-user.decorator';
 import { CandidatesService } from './candidates.service';
@@ -50,4 +44,3 @@ export class CandidatesController {
     return this.candidatesService.updateProfile(userId, dto);
   }
 }
-

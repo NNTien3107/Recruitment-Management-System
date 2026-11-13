@@ -48,7 +48,7 @@ describe('LocalStorageService', () => {
 
   describe('onModuleInit', () => {
     it('tạo thư mục lưu trữ nếu chưa tồn tại', async () => {
-      const exists = fs.existsSync(testUploadDir);
+      const exists = await Promise.resolve(fs.existsSync(testUploadDir));
       expect(exists).toBe(true);
     });
   });
@@ -94,7 +94,7 @@ describe('LocalStorageService', () => {
 
     it('báo lỗi BadRequestException khi buffer rỗng hoặc không hợp lệ', async () => {
       const invalidFile = {
-        buffer: null as any,
+        buffer: null as unknown as Buffer,
         originalname: 'test.pdf',
       };
 
@@ -107,9 +107,9 @@ describe('LocalStorageService', () => {
         originalname: 'test.pdf',
       };
 
-      await expect(
-        service.upload(fileData, { folder: '../danger-dir' }),
-      ).rejects.toBeInstanceOf(BadRequestException);
+      await expect(service.upload(fileData, { folder: '../danger-dir' })).rejects.toBeInstanceOf(
+        BadRequestException,
+      );
     });
 
     it('hỗ trợ customFilename nếu được cung cấp và làm sạch tên file', async () => {
@@ -136,7 +136,7 @@ describe('LocalStorageService', () => {
 
     it('báo lỗi BadRequestException khi key rỗng hoặc không phải chuỗi', () => {
       expect(() => service.getAbsolutePath('')).toThrow(BadRequestException);
-      expect(() => service.getAbsolutePath(null as any)).toThrow(BadRequestException);
+      expect(() => service.getAbsolutePath(null as unknown as string)).toThrow(BadRequestException);
     });
 
     it('báo lỗi BadRequestException khi phát hiện Path Traversal (..)', () => {
@@ -175,7 +175,7 @@ describe('LocalStorageService', () => {
 
       const chunks: Buffer[] = [];
       for await (const chunk of stream) {
-        chunks.push(Buffer.from(chunk));
+        chunks.push(Buffer.isBuffer(chunk) ? chunk : Buffer.from(chunk as Uint8Array));
       }
       const text = Buffer.concat(chunks).toString('utf-8');
       expect(text).toBe('Hello Stream Test');
@@ -201,9 +201,7 @@ describe('LocalStorageService', () => {
     });
 
     it('báo lỗi NotFoundException khi đọc file không tồn tại', async () => {
-      await expect(service.getBuffer('unknown-file.txt')).rejects.toBeInstanceOf(
-        NotFoundException,
-      );
+      await expect(service.getBuffer('unknown-file.txt')).rejects.toBeInstanceOf(NotFoundException);
     });
   });
 
@@ -245,4 +243,3 @@ describe('LocalStorageService', () => {
     });
   });
 });
-

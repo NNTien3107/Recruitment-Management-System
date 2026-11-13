@@ -55,25 +55,18 @@ export function validateCvFile(file?: {
 
   // 2. Kiểm tra Magic Bytes của DOCX (PK\x03\x04 - ZIP archive)
   const isZip =
-    buffer[0] === 0x50 &&
-    buffer[1] === 0x4b &&
-    buffer[2] === 0x03 &&
-    buffer[3] === 0x04;
+    buffer[0] === 0x50 && buffer[1] === 0x4b && buffer[2] === 0x03 && buffer[3] === 0x04;
 
   if (isZip && ext === '.docx') {
     return {
-      mimeType:
-        'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+      mimeType: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
       extension: '.docx',
     };
   }
 
   // 3. Kiểm tra Magic Bytes của DOC (0xD0 0xCF 0x11 0xE0)
   const isLegacyDoc =
-    buffer[0] === 0xd0 &&
-    buffer[1] === 0xcf &&
-    buffer[2] === 0x11 &&
-    buffer[3] === 0xe0;
+    buffer[0] === 0xd0 && buffer[1] === 0xcf && buffer[2] === 0x11 && buffer[3] === 0xe0;
 
   if (isLegacyDoc && (ext === '.doc' || ext === '.docx')) {
     return {
@@ -86,4 +79,3 @@ export function validateCvFile(file?: {
     'Định dạng file không được hỗ trợ. Hệ thống chỉ chấp nhận file CV định dạng PDF hoặc Word (.docx, .doc)',
   );
 }
-

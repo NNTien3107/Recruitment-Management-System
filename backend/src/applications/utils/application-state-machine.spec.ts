@@ -16,9 +16,9 @@ describe('ApplicationStateMachine (canTransition)', () => {
     it('từ chối nhảy cóc sang OFFERED, ACCEPTED, INTERVIEW_SCHEDULED', () => {
       expect(canTransition(ApplicationStatus.APPLIED, ApplicationStatus.OFFERED)).toBe(false);
       expect(canTransition(ApplicationStatus.APPLIED, ApplicationStatus.ACCEPTED)).toBe(false);
-      expect(
-        canTransition(ApplicationStatus.APPLIED, ApplicationStatus.INTERVIEW_SCHEDULED),
-      ).toBe(false);
+      expect(canTransition(ApplicationStatus.APPLIED, ApplicationStatus.INTERVIEW_SCHEDULED)).toBe(
+        false,
+      );
     });
 
     it('từ chối chuyển sang chính APPLIED', () => {
@@ -43,21 +43,21 @@ describe('ApplicationStateMachine (canTransition)', () => {
 
   describe('Từ trạng thái INTERVIEW_SCHEDULED', () => {
     it('cho phép chuyển sang OFFERED, REVIEWING (vòng tiếp), REJECTED, WITHDRAWN', () => {
-      expect(
-        canTransition(ApplicationStatus.INTERVIEW_SCHEDULED, ApplicationStatus.OFFERED),
-      ).toBe(true);
+      expect(canTransition(ApplicationStatus.INTERVIEW_SCHEDULED, ApplicationStatus.OFFERED)).toBe(
+        true,
+      );
       expect(
         canTransition(ApplicationStatus.INTERVIEW_SCHEDULED, ApplicationStatus.REVIEWING),
       ).toBe(true);
-      expect(
-        canTransition(ApplicationStatus.INTERVIEW_SCHEDULED, ApplicationStatus.REJECTED),
-      ).toBe(true);
+      expect(canTransition(ApplicationStatus.INTERVIEW_SCHEDULED, ApplicationStatus.REJECTED)).toBe(
+        true,
+      );
     });
 
     it('từ chối nhảy thẳng sang ACCEPTED khi chưa OFFERED', () => {
-      expect(
-        canTransition(ApplicationStatus.INTERVIEW_SCHEDULED, ApplicationStatus.ACCEPTED),
-      ).toBe(false);
+      expect(canTransition(ApplicationStatus.INTERVIEW_SCHEDULED, ApplicationStatus.ACCEPTED)).toBe(
+        false,
+      );
     });
   });
 
@@ -94,4 +94,3 @@ describe('ApplicationStateMachine (canTransition)', () => {
     });
   });
 });
-

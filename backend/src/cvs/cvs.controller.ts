@@ -13,13 +13,7 @@ import {
   UseInterceptors,
 } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
-import {
-  ApiBody,
-  ApiConsumes,
-  ApiHeader,
-  ApiOperation,
-  ApiTags,
-} from '@nestjs/swagger';
+import { ApiBody, ApiConsumes, ApiHeader, ApiOperation, ApiTags } from '@nestjs/swagger';
 import type { Response } from 'express';
 import { CurrentUser, RequestUser } from '../common/decorators/current-user.decorator';
 import { CvsService } from './cvs.service';
@@ -55,7 +49,8 @@ export class CvsController {
   @UseInterceptors(FileInterceptor('file'))
   async uploadCv(
     @CurrentUser('id') candidateId: string | undefined,
-    @UploadedFile() file: Express.Multer.File,
+    @UploadedFile()
+    file: { buffer?: Buffer; originalname?: string; size?: number; mimetype?: string } | undefined,
     @Body() dto: UploadCvDto,
   ) {
     if (!candidateId) {
@@ -88,10 +83,7 @@ export class CvsController {
     description: 'ID người dùng',
     required: false,
   })
-  async findOne(
-    @Param('id', ParseUUIDPipe) id: string,
-    @CurrentUser('id') candidateId?: string,
-  ) {
+  async findOne(@Param('id', ParseUUIDPipe) id: string, @CurrentUser('id') candidateId?: string) {
     if (!candidateId) {
       throw new UnauthorizedException('Vui lòng đăng nhập');
     }
@@ -175,14 +167,10 @@ export class CvsController {
     description: 'ID ứng viên',
     required: false,
   })
-  async delete(
-    @Param('id', ParseUUIDPipe) id: string,
-    @CurrentUser('id') candidateId?: string,
-  ) {
+  async delete(@Param('id', ParseUUIDPipe) id: string, @CurrentUser('id') candidateId?: string) {
     if (!candidateId) {
       throw new UnauthorizedException('Vui lòng đăng nhập');
     }
     return this.cvsService.delete(id, candidateId);
   }
 }
-

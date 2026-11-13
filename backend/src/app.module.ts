@@ -44,4 +44,4 @@ import { ApplicationsModule } from './applications/applications.module';
     { provide: APP_INTERCEPTOR, useClass: ResponseInterceptor },
   ],
 })
-export class AppModule { }
+export class AppModule {}

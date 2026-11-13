@@ -76,10 +76,7 @@ export abstract class StorageService {
    * Tải file lên bộ lưu trữ.
    * File được đổi tên ngẫu nhiên bằng UUID và lưu an toàn ngoài thư mục public.
    */
-  abstract upload(
-    file: UploadFileInput,
-    options?: UploadFileOptions,
-  ): Promise<UploadedFileResult>;
+  abstract upload(file: UploadFileInput, options?: UploadFileOptions): Promise<UploadedFileResult>;
 
   /**
    * Lấy thông tin và Readable Stream của file để tải xuống.
@@ -115,4 +112,3 @@ export abstract class StorageService {
    */
   abstract getAbsolutePath(key: string): string;
 }
-

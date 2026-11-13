@@ -64,7 +64,11 @@ export class LocalStorageService extends StorageService implements OnModuleInit 
 
     // Kiểm tra bảo mật: file bắt buộc phải nằm bên trong baseUploadDir
     const relative = path.relative(this.baseUploadDir, resolvedPath);
-    if (relative.startsWith('..') || path.isAbsolute(relative) || resolvedPath === this.baseUploadDir) {
+    if (
+      relative.startsWith('..') ||
+      path.isAbsolute(relative) ||
+      resolvedPath === this.baseUploadDir
+    ) {
       throw new BadRequestException('Đường dẫn file không hợp lệ hoặc chứa ký tự nguy hiểm');
     }
 
@@ -74,10 +78,7 @@ export class LocalStorageService extends StorageService implements OnModuleInit 
   /**
    * Tải file lên ổ đĩa với tên file ngẫu nhiên (UUID) để tránh trùng lặp và lộ tên gốc.
    */
-  async upload(
-    file: UploadFileInput,
-    options?: UploadFileOptions,
-  ): Promise<UploadedFileResult> {
+  async upload(file: UploadFileInput, options?: UploadFileOptions): Promise<UploadedFileResult> {
     if (!file || !file.buffer || !Buffer.isBuffer(file.buffer)) {
       throw new BadRequestException('Dữ liệu file không hợp lệ hoặc rỗng');
     }
@@ -224,4 +225,3 @@ export class LocalStorageService extends StorageService implements OnModuleInit 
     }
   }
 }
-

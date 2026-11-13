@@ -21,4 +21,3 @@ export class QueryApplicationsDto extends PaginationQueryDto {
   @IsString()
   keyword?: string;
 }
-

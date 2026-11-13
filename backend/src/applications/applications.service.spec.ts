@@ -1,19 +1,15 @@
-import {
-  BadRequestException,
-  ConflictException,
-  ForbiddenException,
-  NotFoundException,
-} from '@nestjs/common';
+import { BadRequestException, ConflictException, ForbiddenException } from '@nestjs/common';
 import { Test, TestingModule } from '@nestjs/testing';
 import { StorageService } from '../common/storage';
 import { NotificationService } from '../notifications/notifications.service';
 import { PrismaService } from '../prisma/prisma.service';
 import { ApplicationsService } from './applications.service';
 
+/* eslint-disable @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-return, @typescript-eslint/no-unnecessary-type-assertion */
 describe('ApplicationsService', () => {
   let service: ApplicationsService;
 
-  const mockPrisma = {
+  const mockPrisma: any = {
     cv: {
       findUnique: jest.fn(),
     },
@@ -118,9 +114,7 @@ describe('ApplicationsService', () => {
       // Đã có đơn tồn tại
       mockPrisma.application.findUnique.mockResolvedValue({ id: 'existing-app' });
 
-      await expect(service.apply(candidateId, dto)).rejects.toBeInstanceOf(
-        ConflictException,
-      );
+      await expect(service.apply(candidateId, dto)).rejects.toBeInstanceOf(ConflictException);
       expect(mockPrisma.application.create).not.toHaveBeenCalled();
     });
 
@@ -132,9 +126,7 @@ describe('ApplicationsService', () => {
         deletedAt: null,
       });
 
-      await expect(service.apply(candidateId, dto)).rejects.toBeInstanceOf(
-        BadRequestException,
-      );
+      await expect(service.apply(candidateId, dto)).rejects.toBeInstanceOf(BadRequestException);
     });
 
     it('báo lỗi BadRequestException khi tin tuyển dụng đã hết hạn (BR-03)', async () => {
@@ -146,9 +138,7 @@ describe('ApplicationsService', () => {
         deadline: new Date(Date.now() - 86400000), // Đã hết hạn hôm qua
       });
 
-      await expect(service.apply(candidateId, dto)).rejects.toBeInstanceOf(
-        BadRequestException,
-      );
+      await expect(service.apply(candidateId, dto)).rejects.toBeInstanceOf(BadRequestException);
     });
 
     it('báo lỗi BadRequestException khi tin tuyển dụng đã bị xóa mềm (BR-03 / BR-05)', async () => {
@@ -159,9 +149,7 @@ describe('ApplicationsService', () => {
         deletedAt: new Date(), // Bị xóa mềm
       });
 
-      await expect(service.apply(candidateId, dto)).rejects.toBeInstanceOf(
-        BadRequestException,
-      );
+      await expect(service.apply(candidateId, dto)).rejects.toBeInstanceOf(BadRequestException);
     });
 
     it('báo lỗi BadRequestException khi sử dụng CV của người khác', async () => {
@@ -170,9 +158,7 @@ describe('ApplicationsService', () => {
         candidateId: 'other-candidate', // Không phải của mình
       });
 
-      await expect(service.apply(candidateId, dto)).rejects.toBeInstanceOf(
-        BadRequestException,
-      );
+      await expect(service.apply(candidateId, dto)).rejects.toBeInstanceOf(BadRequestException);
     });
   });
 
@@ -185,7 +171,7 @@ describe('ApplicationsService', () => {
         id: applicationId,
         status: 'APPLIED',
         candidateId: 'cand-1',
-        job: { recruiterId, title: 'NodeJS Developer' },
+        job: { company: { ownerId: recruiterId }, title: 'NodeJS Developer' },
       });
 
       mockPrisma.application.update.mockResolvedValue({
@@ -229,7 +215,7 @@ describe('ApplicationsService', () => {
       mockPrisma.application.findUnique.mockResolvedValue({
         id: applicationId,
         status: 'APPLIED',
-        job: { recruiterId },
+        job: { company: { ownerId: recruiterId } },
       });
 
       await expect(
@@ -246,7 +232,7 @@ describe('ApplicationsService', () => {
       mockPrisma.application.findUnique.mockResolvedValue({
         id: applicationId,
         status: 'APPLIED',
-        job: { recruiterId: 'owner-recruiter' },
+        job: { company: { ownerId: 'owner-recruiter' } },
       });
 
       await expect(
@@ -261,7 +247,7 @@ describe('ApplicationsService', () => {
     it('báo lỗi ForbiddenException nếu tin không thuộc về recruiter đó', async () => {
       mockPrisma.job.findUnique.mockResolvedValue({
         id: 'job-1',
-        recruiterId: 'other-recruiter',
+        company: { ownerId: 'other-recruiter' },
       });
 
       await expect(
@@ -277,7 +263,7 @@ describe('ApplicationsService', () => {
     it('cho phép Recruiter của tin tải CV ứng viên', async () => {
       mockPrisma.application.findUnique.mockResolvedValue({
         id: 'app-1',
-        job: { recruiterId: 'recruiter-1' },
+        job: { company: { ownerId: 'recruiter-1' } },
         cv: { fileKey: 'cvs/abc.pdf', originalName: 'abc.pdf' },
       });
 
@@ -292,7 +278,7 @@ describe('ApplicationsService', () => {
     it('từ chối Recruiter khác không sở hữu tin tải CV ứng viên', async () => {
       mockPrisma.application.findUnique.mockResolvedValue({
         id: 'app-1',
-        job: { recruiterId: 'recruiter-1' },
+        job: { company: { ownerId: 'recruiter-1' } },
         cv: { fileKey: 'cvs/abc.pdf' },
       });
 
@@ -304,4 +290,3 @@ describe('ApplicationsService', () => {
     });
   });
 });
-

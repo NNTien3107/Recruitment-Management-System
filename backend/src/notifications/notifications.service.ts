@@ -15,10 +15,10 @@ export class NotificationService {
    * @param type Loại sự kiện thông báo (ví dụ: 'APPLICATION_STATUS_CHANGED')
    * @param payload Dữ liệu chi tiết gửi kèm
    */
-  async notify(userId: string, type: string, payload: NotificationPayload): Promise<void> {
+  notify(userId: string, type: string, payload: NotificationPayload): Promise<void> {
     this.logger.log(
       `[Thông báo] Gửi đến User ${userId} | Loại: ${type} | Nội dung: ${JSON.stringify(payload)}`,
     );
+    return Promise.resolve();
   }
 }
-

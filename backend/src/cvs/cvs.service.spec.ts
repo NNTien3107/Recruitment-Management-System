@@ -1,8 +1,4 @@
-import {
-  BadRequestException,
-  ForbiddenException,
-  NotFoundException,
-} from '@nestjs/common';
+import { BadRequestException, ForbiddenException, NotFoundException } from '@nestjs/common';
 import { Test, TestingModule } from '@nestjs/testing';
 import { Readable } from 'stream';
 import { StorageService } from '../common/storage';
@@ -75,7 +71,7 @@ describe('CvsService', () => {
         isDefault: true,
       });
 
-      const result = await service.upload('cand-1', mockFile);
+      const result: unknown = await service.upload('cand-1', mockFile);
 
       expect(mockStorageService.upload).toHaveBeenCalledWith(
         expect.objectContaining({ mimetype: 'application/pdf' }),
@@ -86,16 +82,14 @@ describe('CvsService', () => {
           isDefault: true,
           mimeType: 'application/pdf',
         }),
-        select: expect.any(Object),
+        select: expect.any(Object) as Record<string, boolean>,
       });
       expect(result.id).toBe('cv-1');
     });
 
     it('upload CV file DOCX hợp lệ thành công (chữ ký PK\x03\x04)', async () => {
       // Buffer bắt đầu bằng chữ ký nhị phân PK\x03\x04 (ZIP)
-      const validDocxBuffer = Buffer.from([
-        0x50, 0x4b, 0x03, 0x04, 0x14, 0x00, 0x06, 0x00,
-      ]);
+      const validDocxBuffer = Buffer.from([0x50, 0x4b, 0x03, 0x04, 0x14, 0x00, 0x06, 0x00]);
       const mockFile = {
         buffer: validDocxBuffer,
         originalname: 'my-resume.docx',
@@ -118,7 +112,7 @@ describe('CvsService', () => {
         isDefault: false,
       });
 
-      const result = await service.upload('cand-1', mockFile);
+      const result: unknown = await service.upload('cand-1', mockFile);
 
       expect(result.id).toBe('cv-docx');
     });
@@ -131,9 +125,7 @@ describe('CvsService', () => {
         size: 38,
       };
 
-      await expect(service.upload('cand-1', fakeFile)).rejects.toBeInstanceOf(
-        BadRequestException,
-      );
+      await expect(service.upload('cand-1', fakeFile)).rejects.toBeInstanceOf(BadRequestException);
       expect(mockStorageService.upload).not.toHaveBeenCalled();
     });
 
@@ -199,9 +191,9 @@ describe('CvsService', () => {
     it('báo lỗi NotFoundException khi CV không tồn tại', async () => {
       mockPrisma.cv.findUnique.mockResolvedValue(null);
 
-      await expect(
-        service.getDownloadStream('unknown-cv', { id: 'u-1' }),
-      ).rejects.toBeInstanceOf(NotFoundException);
+      await expect(service.getDownloadStream('unknown-cv', { id: 'u-1' })).rejects.toBeInstanceOf(
+        NotFoundException,
+      );
     });
   });
 
@@ -240,9 +232,7 @@ describe('CvsService', () => {
         candidateId: 'cand-1',
       });
 
-      await expect(service.delete('cv-1', 'other-cand')).rejects.toBeInstanceOf(
-        ForbiddenException,
-      );
+      await expect(service.delete('cv-1', 'other-cand')).rejects.toBeInstanceOf(ForbiddenException);
       expect(mockStorageService.delete).not.toHaveBeenCalled();
       expect(mockPrisma.cv.delete).not.toHaveBeenCalled();
     });
@@ -265,9 +255,8 @@ describe('CvsService', () => {
       expect(mockPrisma.cv.update).toHaveBeenCalledWith({
         where: { id: 'cv-2' },
         data: { isDefault: true },
-        select: expect.any(Object),
+        select: expect.any(Object) as Record<string, boolean>,
       });
     });
   });
 });
-

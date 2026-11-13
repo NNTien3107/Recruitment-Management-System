@@ -9,11 +9,7 @@ export const VALID_APPLICATION_TRANSITIONS: Record<
   readonly ApplicationStatus[]
 > = {
   // Trạng thái mới nộp: Recruiter có thể bắt đầu xem xét, loại sớm hoặc ứng viên tự rút
-  APPLIED: [
-    ApplicationStatus.REVIEWING,
-    ApplicationStatus.REJECTED,
-    ApplicationStatus.WITHDRAWN,
-  ],
+  APPLIED: [ApplicationStatus.REVIEWING, ApplicationStatus.REJECTED, ApplicationStatus.WITHDRAWN],
 
   // Đang xem xét hồ sơ: Có thể mời phỏng vấn, loại hoặc ứng viên tự rút
   REVIEWING: [
@@ -31,11 +27,7 @@ export const VALID_APPLICATION_TRANSITIONS: Record<
   ],
 
   // Đã gửi Offer: Ứng viên chấp nhận hoặc từ chối
-  OFFERED: [
-    ApplicationStatus.ACCEPTED,
-    ApplicationStatus.REJECTED,
-    ApplicationStatus.WITHDRAWN,
-  ],
+  OFFERED: [ApplicationStatus.ACCEPTED, ApplicationStatus.REJECTED, ApplicationStatus.WITHDRAWN],
 
   // Các trạng thái kết thúc (Terminal States) - Không thể chuyển tiếp:
   ACCEPTED: [],
@@ -50,10 +42,7 @@ export const VALID_APPLICATION_TRANSITIONS: Record<
  * @param to Trạng thái đích muốn chuyển sang
  * @returns boolean (true nếu hợp lệ, false nếu không được phép)
  */
-export function canTransition(
-  from: ApplicationStatus,
-  to: ApplicationStatus,
-): boolean {
+export function canTransition(from: ApplicationStatus, to: ApplicationStatus): boolean {
   if (from === to) {
     return false; // Không chuyển sang chính trạng thái hiện tại
   }
@@ -82,4 +71,3 @@ export function isTerminalStatus(status: ApplicationStatus): boolean {
   const allowed = VALID_APPLICATION_TRANSITIONS[status];
   return !allowed || allowed.length === 0;
 }
-

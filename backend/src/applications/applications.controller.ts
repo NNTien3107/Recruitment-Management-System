@@ -76,4 +76,3 @@ export class ApplicationsController {
     return this.applicationsService.getMyApplicationDetail(id, candidateId);
   }
 }
-
