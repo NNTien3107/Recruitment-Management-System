@@ -5,6 +5,8 @@ const envSchema = z.object({
   PORT: z.coerce.number().default(3000),
   DATABASE_URL: z.string().min(1),
   STORAGE_DIR: z.string().default('uploads'),
+  JWT_ACCESS_SECRET: z.string().min(32),
+  JWT_ACCESS_EXPIRES_IN_SECONDS: z.coerce.number().default(900), // 15 phút
 });
 
 export type Env = z.infer<typeof envSchema>;

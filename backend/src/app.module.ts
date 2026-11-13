@@ -14,6 +14,10 @@ import { CandidatesModule } from './candidates/candidates.module';
 import { CvsModule } from './cvs/cvs.module';
 import { NotificationsModule } from './notifications/notifications.module';
 import { ApplicationsModule } from './applications/applications.module';
+import { CompaniesModule } from './companies/companies.module';
+import { AuthModule } from './auth/auth.module';
+import { JobsModule } from './jobs/jobs.module';
+
 @Module({
   imports: [
     ConfigModule.forRoot({
@@ -28,6 +32,9 @@ import { ApplicationsModule } from './applications/applications.module';
     CvsModule,
     ApplicationsModule,
     UsersModule,
+    CompaniesModule,
+    AuthModule,
+    JobsModule,
   ],
   controllers: [AppController, HealthController],
   providers: [
