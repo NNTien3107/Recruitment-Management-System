@@ -1,0 +1,137 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  CANDIDATE
+  RECRUITER
+  ADMIN
+}
+
+enum JobStatus {
+  DRAFT
+  PENDING
+  APPROVED
+  CLOSED
+  REJECTED
+}
+
+enum ApplicationStatus {
+  APPLIED
+  REVIEWING
+  INTERVIEW_SCHEDULED
+  OFFERED
+  ACCEPTED
+  REJECTED
+  WITHDRAWN
+}
+
+model User {
+  id           String   @id @default(uuid())
+  email        String   @unique // BR-01
+  passwordHash String
+  fullName     String
+  role         Role     @default(CANDIDATE)
+  isLocked     Boolean  @default(false)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  candidateProfile CandidateProfile?
+  cvs              Cv[]
+  applications     Application[]              @relation("CandidateApplications")
+  postedJobs       Job[]
+  statusChanges    ApplicationStatusHistory[]
+
+  @@map("users")
+}
+
+model CandidateProfile {
+  id         String   @id @default(uuid())
+  userId     String   @unique
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  phone      String?
+  address    String?
+  title      String?  // Chức danh / Vị trí mong muốn (vd: Frontend Engineer)
+  bio        String?  // Giới thiệu bản thân
+  skills     String[] @default([])
+  experience Json?    // Danh sách kinh nghiệm làm việc: [{ company, position, startDate, endDate, description }]
+  education  Json?    // Danh sách học vấn: [{ school, degree, major, startDate, endDate }]
+  avatarUrl  String?
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  @@map("candidate_profiles")
+}
+
+model Cv {
+  id           String   @id @default(uuid())
+  candidateId  String
+  candidate    User     @relation(fields: [candidateId], references: [id], onDelete: Cascade)
+  name         String   // Tên gợi nhớ của CV, vd: "CV Tiếng Anh", "CV Backend"
+  fileKey      String   // Khóa định danh file trong StorageService (vd: 'cvs/uuid.pdf')
+  originalName String   // Tên file gốc lúc tải lên (vd: 'NguyenVanA_Resume.pdf')
+  mimeType     String   // 'application/pdf' hoặc 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
+  fileSize     Int      // Kích thước bytes
+  isDefault    Boolean  @default(false)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  applications Application[]
+
+  @@map("cvs")
+}
+
+model Job {
+  id           String        @id @default(uuid())
+  recruiterId  String
+  recruiter    User          @relation(fields: [recruiterId], references: [id], onDelete: Cascade)
+  title        String
+  description  String?
+  status       JobStatus     @default(DRAFT)
+  deadline     DateTime?
+  deletedAt    DateTime?     // BR-05: Xóa mềm
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+
+  applications Application[]
+
+  @@map("jobs")
+}
+
+model Application {
+  id             String                     @id @default(uuid())
+  candidateId    String
+  candidate      User                       @relation("CandidateApplications", fields: [candidateId], references: [id], onDelete: Cascade)
+  jobId          String
+  job            Job                        @relation(fields: [jobId], references: [id], onDelete: Cascade)
+  cvId           String
+  cv             Cv                         @relation(fields: [cvId], references: [id], onDelete: Restrict)
+  coverLetter    String?
+  status         ApplicationStatus          @default(APPLIED)
+  createdAt      DateTime                   @default(now())
+  updatedAt      DateTime                   @updatedAt
+
+  statusHistory  ApplicationStatusHistory[]
+
+  @@unique([candidateId, jobId]) // BR-02: Mỗi ứng viên chỉ nộp một đơn cho một tin
+  @@map("applications")
+}
+
+model ApplicationStatusHistory {
+  id            String             @id @default(uuid())
+  applicationId String
+  application   Application        @relation(fields: [applicationId], references: [id], onDelete: Cascade)
+  fromStatus    ApplicationStatus?
+  toStatus      ApplicationStatus
+  changedById   String
+  changedBy     User               @relation(fields: [changedById], references: [id], onDelete: Cascade)
+  note          String?
+  createdAt     DateTime           @default(now())
+
+  @@map("application_status_histories")
+}

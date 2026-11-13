@@ -1,0 +1,31 @@
+{
+  "name": "recruitment-management-system",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Nền tảng kết nối nhà tuyển dụng và ứng viên",
+  "scripts": {
+    "prepare": "husky"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/NNTien3107/Recruitment-Management-System.git"
+  },
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/NNTien3107/Recruitment-Management-System/issues"
+  },
+  "homepage": "https://github.com/NNTien3107/Recruitment-Management-System#readme",
+  "lint-staged": {
+    "backend/**/*.ts": [
+      "prettier --write"
+    ],
+    "frontend/**/*.{ts,tsx}": [
+      "prettier --write"
+    ]
+  },
+  "devDependencies": {
+    "husky": "^9.1.7",
+    "lint-staged": "^17.6.0",
+    "prettier": "^3.9.10"
+  }
+}

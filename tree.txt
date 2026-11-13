@@ -1,0 +1,70 @@
+Recruitment-Management-System
+├── backend
+│   ├── prisma
+│   │   ├── migrations
+│   │   │   ├── 20261111045458_init
+│   │   │   └── migration_lock.toml
+│   │   └── schema.prisma
+│   ├── src
+│   │   ├── common
+│   │   │   ├── dto
+│   │   │   ├── filters
+│   │   │   ├── interceptors
+│   │   │   └── utils
+│   │   ├── config
+│   │   │   └── env.validation.ts
+│   │   ├── health
+│   │   │   └── health.controller.ts
+│   │   ├── prisma
+│   │   │   ├── prisma.module.ts
+│   │   │   └── prisma.service.ts
+│   │   ├── users
+│   │   │   ├── dto
+│   │   │   ├── users.controller.ts
+│   │   │   ├── users.module.ts
+│   │   │   ├── users.service.spec.ts
+│   │   │   └── users.service.ts
+│   │   ├── app.controller.spec.ts
+│   │   ├── app.controller.ts
+│   │   ├── app.module.ts
+│   │   ├── app.service.ts
+│   │   └── main.ts
+│   ├── test
+│   │   ├── app.e2e-spec.ts
+│   │   └── jest-e2e.json
+│   ├── Dockerfile
+│   ├── README.md
+│   ├── eslint.config.mjs
+│   ├── nest-cli.json
+│   ├── package-lock.json
+│   ├── package.json
+│   ├── tsconfig.build.json
+│   └── tsconfig.json
+├── frontend
+│   ├── public
+│   │   ├── favicon.svg
+│   │   └── icons.svg
+│   ├── src
+│   │   ├── assets
+│   │   │   ├── hero.png
+│   │   │   ├── react.svg
+│   │   │   └── vite.svg
+│   │   ├── App.css
+│   │   ├── App.tsx
+│   │   ├── index.css
+│   │   └── main.tsx
+│   ├── Dockerfile
+│   ├── README.md
+│   ├── eslint.config.js
+│   ├── index.html
+│   ├── package-lock.json
+│   ├── package.json
+│   ├── tsconfig.app.json
+│   ├── tsconfig.json
+│   ├── tsconfig.node.json
+│   └── vite.config.ts
+├── README.md
+├── docker-compose.yml
+├── package-lock.json
+├── package.json
+└── tree.txt
