@@ -12,6 +12,7 @@ import { UsersModule } from './users/users.module';
 import { CompaniesModule } from './companies/companies.module';
 import { AuthModule } from './auth/auth.module';
 import { JobsModule } from './jobs/jobs.module';
+import { AdminModule } from './admin/admin.module';
 
 @Module({
   imports: [
@@ -24,6 +25,7 @@ import { JobsModule } from './jobs/jobs.module';
     CompaniesModule,
     AuthModule,
     JobsModule,
+    AdminModule,
   ],
   controllers: [AppController, HealthController],
   providers: [
