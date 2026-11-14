@@ -1,8 +1,24 @@
 import { ApiPropertyOptional } from '@nestjs/swagger';
 import { JobLevel, JobStatus, JobType } from '@prisma/client';
 import { Transform, Type } from 'class-transformer';
-import { IsEnum, IsInt, IsOptional, IsString, IsUUID, MaxLength, Min } from 'class-validator';
+import {
+  IsArray,
+  IsEnum,
+  IsInt,
+  IsOptional,
+  IsString,
+  IsUUID,
+  MaxLength,
+  Min,
+} from 'class-validator';
 import { PaginationQueryDto } from '../../common/dto/pagination-query.dto';
+
+export enum JobSort {
+  NEWEST = 'newest',
+  OLDEST = 'oldest',
+  SALARY_DESC = 'salary_desc',
+  SALARY_ASC = 'salary_asc',
+}
 
 export class QueryJobsDto extends PaginationQueryDto {
   @ApiPropertyOptional({ description: 'Từ khóa tìm kiếm theo tiêu đề hoặc mô tả công việc' })
@@ -11,6 +27,32 @@ export class QueryJobsDto extends PaginationQueryDto {
   @IsString()
   @MaxLength(100)
   keyword?: string;
+
+  @ApiPropertyOptional({
+    description:
+      'Lọc theo danh sách kỹ năng (truyền mảng hoặc chuỗi cách nhau bởi dấu phẩy, vd: NodeJS,NestJS)',
+    type: [String],
+    example: ['NodeJS', 'NestJS'],
+  })
+  @Transform(({ value }: { value: unknown }) => {
+    if (Array.isArray(value)) {
+      return value
+        .filter((item): item is string => typeof item === 'string')
+        .map((s) => s.trim())
+        .filter(Boolean);
+    }
+    if (typeof value === 'string') {
+      return value
+        .split(',')
+        .map((s) => s.trim())
+        .filter(Boolean);
+    }
+    return value;
+  })
+  @IsOptional()
+  @IsArray({ message: 'skills phải là danh sách kỹ năng hợp lệ' })
+  @IsString({ each: true, message: 'Mỗi kỹ năng phải là một chuỗi ký tự' })
+  skills?: string[];
 
   @ApiPropertyOptional({ description: 'Lọc theo địa điểm làm việc', example: 'Hà Nội' })
   @Transform(({ value }: { value: unknown }) => (typeof value === 'string' ? value.trim() : value))
@@ -54,4 +96,14 @@ export class QueryJobsDto extends PaginationQueryDto {
   @IsInt()
   @Min(0)
   salaryMax?: number;
+
+  @ApiPropertyOptional({
+    enum: JobSort,
+    description:
+      'Sắp xếp kết quả: newest (mới nhất), oldest (cũ nhất), salary_desc (lương cao -> thấp), salary_asc (lương thấp -> cao)',
+    default: JobSort.NEWEST,
+  })
+  @IsOptional()
+  @IsEnum(JobSort)
+  sort?: JobSort = JobSort.NEWEST;
 }
