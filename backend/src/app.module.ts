@@ -10,8 +10,10 @@ import { HealthController } from './health/health.controller';
 import { PrismaModule } from './prisma/prisma.module';
 import { UsersModule } from './users/users.module';
 import { CompaniesModule } from './companies/companies.module';
+import { AuthModule } from './auth/auth.module';
 import { JobsModule } from './jobs/jobs.module';
 import { NotificationsModule } from './notifications/notifications.module';
+
 @Module({
   imports: [
     ConfigModule.forRoot({
@@ -21,6 +23,7 @@ import { NotificationsModule } from './notifications/notifications.module';
     PrismaModule,
     UsersModule,
     CompaniesModule,
+    AuthModule,
     JobsModule,
     NotificationsModule,
   ],
