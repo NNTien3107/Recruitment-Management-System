@@ -680,6 +680,178 @@
   color: #1e40af;
 }
 
+.rms-alert-success {
+  background: var(--rms-success-soft);
+  border: 1px solid #a7f3d0;
+  color: var(--rms-success);
+}
+
+/* Recruiter Dev Bar */
+.rms-dev-bar {
+  background: #fffbeb;
+  border-bottom: 1px solid #fde68a;
+  padding: 10px 0;
+  font-size: 13px;
+}
+
+.rms-dev-bar-inner {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.rms-dev-bar-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  color: #92400e;
+  font-weight: 500;
+}
+
+.rms-dev-badge {
+  background: #f59e0b;
+  color: #fff;
+  padding: 2px 8px;
+  border-radius: 6px;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.4px;
+}
+
+.rms-dev-bar-controls {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+}
+
+.rms-dev-select {
+  min-width: 240px;
+}
+
+.rms-dev-manual-form {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.rms-input-sm {
+  height: 34px;
+  font-size: 13px;
+}
+
+.rms-dev-input {
+  width: 250px;
+}
+
+.rms-dev-error {
+  width: 100%;
+  color: var(--rms-danger);
+  font-weight: 500;
+}
+
+/* Page header & Forms (UC13) */
+.rms-page-header {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 24px;
+  text-align: left;
+}
+
+.rms-page-title {
+  margin: 0 0 4px;
+  font-size: 26px;
+  font-weight: 700;
+}
+
+.rms-header-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.rms-company-profile-header {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  margin-bottom: 24px;
+}
+
+.rms-form-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+}
+
+.rms-field-full {
+  grid-column: 1 / -1;
+}
+
+.rms-required {
+  color: var(--rms-danger);
+}
+
+.rms-textarea {
+  width: 100%;
+  padding: 10px 12px;
+  border: 1px solid var(--rms-border);
+  border-radius: 8px;
+  font-family: inherit;
+  font-size: 14px;
+  color: var(--rms-text);
+  resize: vertical;
+}
+
+.rms-textarea:focus {
+  outline: none;
+  border-color: var(--rms-primary);
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.12);
+}
+
+.rms-file-input {
+  font-size: 13px;
+  color: var(--rms-text-secondary);
+}
+
+.rms-todo-hint {
+  margin: 6px 0 0;
+  padding: 8px 12px;
+  border-radius: 8px;
+  background: #f8fafc;
+  border: 1px dashed var(--rms-border);
+  font-size: 13px;
+  color: var(--rms-text-secondary);
+}
+
+.rms-form-actions {
+  margin-top: 22px;
+  padding-top: 16px;
+  border-top: 1px solid var(--rms-border);
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+}
+
+.rms-company-preview-box {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: 10px;
+  padding: 12px 0;
+}
+
+.rms-preview-name {
+  margin: 4px 0 0;
+  font-size: 18px;
+  font-weight: 700;
+}
+
 .rms-muted {
   color: var(--rms-text-muted);
   font-size: 14px;
@@ -697,7 +869,8 @@
 @media (max-width: 900px) {
   .rms-search-grid-top,
   .rms-search-grid-bottom,
-  .rms-detail-grid {
+  .rms-detail-grid,
+  .rms-form-grid {
     grid-template-columns: 1fr;
   }
 

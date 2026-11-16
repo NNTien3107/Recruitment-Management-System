@@ -3,12 +3,17 @@ import { Navbar } from './components/Navbar';
 import { CompanyDetailPage } from './pages/CompanyDetailPage';
 import { JobDetailPage } from './pages/JobDetailPage';
 import { JobsSearchPage } from './pages/JobsSearchPage';
+import { RecruiterCompanyPage } from './pages/RecruiterCompanyPage';
 import { usePathname } from './utils/navigation';
 
 function App() {
   const pathname = usePathname();
 
   const renderPage = () => {
+    if (pathname === '/recruiter/company') {
+      return <RecruiterCompanyPage />;
+    }
+
     const jobMatch = /^\/jobs\/([^/]+)$/.exec(pathname);
     if (jobMatch) {
       return <JobDetailPage jobId={decodeURIComponent(jobMatch[1])} />;
