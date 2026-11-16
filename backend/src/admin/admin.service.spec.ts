@@ -1,13 +1,24 @@
 import { BadRequestException, NotFoundException } from '@nestjs/common';
 import { Test } from '@nestjs/testing';
-import { JobStatus, Prisma } from '@prisma/client';
+import { JobStatus, Prisma, Role } from '@prisma/client';
+import { AuthService } from '../auth/auth.service';
 import { PrismaService } from '../prisma/prisma.service';
 import { AdminService } from './admin.service';
+
+jest.mock('../auth/auth.service', () => ({
+  AuthService: class AuthService {},
+}));
 
 describe('AdminService', () => {
   let service: AdminService;
 
   const prisma = {
+    user: {
+      findMany: jest.fn(),
+      count: jest.fn(),
+      findUnique: jest.fn(),
+      update: jest.fn(),
+    },
     job: {
       findMany: jest.fn(),
       count: jest.fn(),
@@ -17,14 +28,179 @@ describe('AdminService', () => {
     $transaction: jest.fn(),
   };
 
+  const authService = {
+    revokeAllUserTokens: jest.fn(),
+  };
+
   beforeEach(async () => {
     jest.resetAllMocks();
 
     const module = await Test.createTestingModule({
-      providers: [AdminService, { provide: PrismaService, useValue: prisma }],
+      providers: [
+        AdminService,
+        { provide: PrismaService, useValue: prisma },
+        { provide: AuthService, useValue: authService },
+      ],
     }).compile();
 
     service = module.get(AdminService);
+  });
+
+  describe('findAllUsers (UC21, FR-31)', () => {
+    it('trả về danh sách người dùng và meta phân trang, hỗ trợ lọc theo role, isLocked, keyword', async () => {
+      prisma.$transaction.mockResolvedValue([
+        [{ id: 'user-1', email: 'candidate@test.com', role: Role.CANDIDATE, isLocked: false }],
+        1,
+      ]);
+      prisma.user.findMany.mockReturnValue('findMany');
+      prisma.user.count.mockReturnValue('count');
+
+      const result = await service.findAllUsers({
+        page: 1,
+        pageSize: 10,
+        role: Role.CANDIDATE,
+        isLocked: false,
+        keyword: 'candidate',
+      });
+
+      expect(result.items).toHaveLength(1);
+      expect(result.meta).toEqual({ page: 1, pageSize: 10, total: 1, totalPages: 1 });
+
+      const findManyCall = prisma.user.findMany.mock.calls[0] as [{ where: Prisma.UserWhereInput }];
+      expect(findManyCall[0].where.role).toBe(Role.CANDIDATE);
+      expect(findManyCall[0].where.isLocked).toBe(false);
+      expect(findManyCall[0].where.OR).toBeDefined();
+    });
+  });
+
+  describe('findUserById (UC21, FR-31)', () => {
+    it('báo lỗi 404 khi không tìm thấy người dùng', async () => {
+      prisma.user.findUnique.mockResolvedValue(null);
+
+      await expect(service.findUserById('non-existent-id')).rejects.toBeInstanceOf(
+        NotFoundException,
+      );
+    });
+
+    it('trả về chi tiết người dùng khi tìm thấy', async () => {
+      const mockUser = {
+        id: 'user-1',
+        email: 'recruiter@test.com',
+        role: Role.RECRUITER,
+        isLocked: false,
+      };
+      prisma.user.findUnique.mockResolvedValue(mockUser);
+
+      const result = await service.findUserById('user-1');
+      expect(result).toEqual(mockUser);
+    });
+  });
+
+  describe('lockUser (UC22, FR-32, BR-06)', () => {
+    it('báo lỗi 404 khi người dùng không tồn tại', async () => {
+      prisma.user.findUnique.mockResolvedValue(null);
+
+      await expect(service.lockUser('non-existent-id')).rejects.toBeInstanceOf(NotFoundException);
+      expect(prisma.user.update).not.toHaveBeenCalled();
+      expect(authService.revokeAllUserTokens).not.toHaveBeenCalled();
+    });
+
+    it('báo lỗi 400 khi cố khóa tài khoản có vai trò ADMIN', async () => {
+      prisma.user.findUnique.mockResolvedValue({
+        id: 'admin-1',
+        role: Role.ADMIN,
+        isLocked: false,
+      });
+
+      await expect(service.lockUser('admin-1')).rejects.toBeInstanceOf(BadRequestException);
+      expect(prisma.user.update).not.toHaveBeenCalled();
+      expect(authService.revokeAllUserTokens).not.toHaveBeenCalled();
+    });
+
+    it('báo lỗi 400 khi tài khoản đã ở trạng thái bị khóa (isLocked = true)', async () => {
+      prisma.user.findUnique.mockResolvedValue({
+        id: 'user-1',
+        role: Role.CANDIDATE,
+        isLocked: true,
+      });
+
+      await expect(service.lockUser('user-1')).rejects.toBeInstanceOf(BadRequestException);
+      expect(prisma.user.update).not.toHaveBeenCalled();
+      expect(authService.revokeAllUserTokens).not.toHaveBeenCalled();
+    });
+
+    it('khóa thành công tài khoản và thu hồi toàn bộ refresh token của người dùng (BR-06)', async () => {
+      prisma.user.findUnique.mockResolvedValue({
+        id: 'user-1',
+        email: 'user1@test.com',
+        role: Role.RECRUITER,
+        isLocked: false,
+      });
+      prisma.user.update.mockResolvedValue({
+        id: 'user-1',
+        email: 'user1@test.com',
+        role: Role.RECRUITER,
+        isLocked: true,
+      });
+      authService.revokeAllUserTokens.mockResolvedValue(undefined);
+
+      const result = await service.lockUser('user-1');
+
+      expect(result.isLocked).toBe(true);
+      expect(prisma.user.update).toHaveBeenCalledWith(
+        expect.objectContaining({
+          where: { id: 'user-1' },
+          data: { isLocked: true },
+        }),
+      );
+      expect(authService.revokeAllUserTokens).toHaveBeenCalledTimes(1);
+      expect(authService.revokeAllUserTokens).toHaveBeenCalledWith('user-1');
+    });
+  });
+
+  describe('unlockUser (UC22, FR-32)', () => {
+    it('báo lỗi 404 khi người dùng không tồn tại', async () => {
+      prisma.user.findUnique.mockResolvedValue(null);
+
+      await expect(service.unlockUser('non-existent-id')).rejects.toBeInstanceOf(NotFoundException);
+      expect(prisma.user.update).not.toHaveBeenCalled();
+    });
+
+    it('báo lỗi 400 khi tài khoản đang hoạt động bình thường (isLocked = false)', async () => {
+      prisma.user.findUnique.mockResolvedValue({
+        id: 'user-1',
+        role: Role.CANDIDATE,
+        isLocked: false,
+      });
+
+      await expect(service.unlockUser('user-1')).rejects.toBeInstanceOf(BadRequestException);
+      expect(prisma.user.update).not.toHaveBeenCalled();
+    });
+
+    it('mở khóa thành công tài khoản đang bị khóa: chuyển isLocked = false', async () => {
+      prisma.user.findUnique.mockResolvedValue({
+        id: 'user-1',
+        email: 'user1@test.com',
+        role: Role.CANDIDATE,
+        isLocked: true,
+      });
+      prisma.user.update.mockResolvedValue({
+        id: 'user-1',
+        email: 'user1@test.com',
+        role: Role.CANDIDATE,
+        isLocked: false,
+      });
+
+      const result = await service.unlockUser('user-1');
+
+      expect(result.isLocked).toBe(false);
+      expect(prisma.user.update).toHaveBeenCalledWith(
+        expect.objectContaining({
+          where: { id: 'user-1' },
+          data: { isLocked: false },
+        }),
+      );
+    });
   });
 
   describe('findAllJobs', () => {
