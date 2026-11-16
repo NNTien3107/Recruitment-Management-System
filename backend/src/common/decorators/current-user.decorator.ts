@@ -7,12 +7,6 @@ export interface RequestUser {
   fullName?: string;
 }
 
-/**
- * Decorator @CurrentUser(field?)
- * Lấy thông tin người dùng đang đăng nhập từ request.user (do JwtAuthGuard gán vào).
- * Trong giai đoạn dev trước khi Auth hoàn thiện, hỗ trợ fallback đọc id từ header 'x-user-id'
- * để thuận tiện cho việc kiểm thử API và Swagger.
- */
 export const CurrentUser = createParamDecorator(
   (
     data: keyof RequestUser | undefined,
@@ -20,15 +14,9 @@ export const CurrentUser = createParamDecorator(
   ): RequestUser | string | undefined => {
     const request = ctx
       .switchToHttp()
-      .getRequest<{ user?: RequestUser; headers: Record<string, string | string[] | undefined> }>();
-    const user: RequestUser | undefined =
-      request.user ||
-      (request.headers['x-user-id']
-        ? {
-            id: request.headers['x-user-id'] as string,
-            role: (request.headers['x-user-role'] as string) || 'CANDIDATE',
-          }
-        : undefined);
+      .getRequest<{ user?: RequestUser }>();
+
+    const user = request.user;
 
     if (!user) {
       return undefined;
