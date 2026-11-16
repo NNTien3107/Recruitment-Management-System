@@ -206,6 +206,7 @@ model ApplicationStatusHistory {
   createdAt     DateTime           @default(now())
 
   @@map("application_status_histories")
+}
 model RefreshToken {
   id        String    @id @default(uuid())
   userId    String
