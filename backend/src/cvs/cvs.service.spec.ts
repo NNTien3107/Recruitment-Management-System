@@ -9,6 +9,7 @@ describe('CvsService', () => {
   let service: CvsService;
 
   const mockPrisma = {
+    $transaction: jest.fn(),
     cv: {
       create: jest.fn(),
       findUnique: jest.fn(),
@@ -49,7 +50,16 @@ describe('CvsService', () => {
 
   beforeEach(async () => {
     jest.clearAllMocks();
+
     mockPrisma.application.count.mockResolvedValue(0);
+    mockStorageService.delete.mockResolvedValue(undefined);
+
+    mockPrisma.$transaction.mockImplementation((callbackOrArray: any) => {
+      if (typeof callbackOrArray === 'function') {
+        return callbackOrArray(mockPrisma);
+      }
+      return Promise.all(callbackOrArray);
+    });
 
     const module: TestingModule = await Test.createTestingModule({
       providers: [
@@ -61,7 +71,6 @@ describe('CvsService', () => {
 
     service = module.get<CvsService>(CvsService);
   });
-
   describe('upload', () => {
     it('upload CV file PDF hợp lệ thành công (chữ ký %PDF-)', async () => {
       // Buffer bắt đầu bằng chữ ký nhị phân %PDF-

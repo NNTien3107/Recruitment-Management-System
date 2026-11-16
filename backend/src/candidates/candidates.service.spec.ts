@@ -14,13 +14,26 @@ describe('CandidatesService', () => {
     candidateProfile: {
       upsert: jest.fn(),
     },
+    $transaction: jest.fn(),
   };
 
   beforeEach(async () => {
     jest.resetAllMocks();
 
+    mockPrismaService.$transaction.mockImplementation(
+      (callbackOrArray: any) => {
+        if (typeof callbackOrArray === 'function') {
+          return callbackOrArray(mockPrismaService);
+        }
+        return Promise.all(callbackOrArray);
+      },
+    );
+
     const module: TestingModule = await Test.createTestingModule({
-      providers: [CandidatesService, { provide: PrismaService, useValue: mockPrismaService }],
+      providers: [
+        CandidatesService,
+        { provide: PrismaService, useValue: mockPrismaService },
+      ],
     }).compile();
 
     service = module.get<CandidatesService>(CandidatesService);
@@ -72,7 +85,9 @@ describe('CandidatesService', () => {
     it('báo lỗi NotFoundException nếu không tìm thấy người dùng', async () => {
       mockPrismaService.user.findUnique.mockResolvedValue(null);
 
-      await expect(service.getProfile('unknown-id')).rejects.toBeInstanceOf(NotFoundException);
+      await expect(
+        service.getProfile('unknown-id'),
+      ).rejects.toBeInstanceOf(NotFoundException);
     });
   });
 
@@ -80,15 +95,19 @@ describe('CandidatesService', () => {
     it('báo lỗi NotFoundException nếu người dùng không tồn tại', async () => {
       mockPrismaService.user.findUnique.mockResolvedValue(null);
 
-      await expect(service.updateProfile('u-unknown', { title: 'Tester' })).rejects.toBeInstanceOf(
-        NotFoundException,
-      );
+      await expect(
+        service.updateProfile('u-unknown', { title: 'Tester' }),
+      ).rejects.toBeInstanceOf(NotFoundException);
     });
 
     it('cập nhật họ tên người dùng và upsert thông tin hồ sơ', async () => {
       mockPrismaService.user.findUnique
         .mockResolvedValueOnce({ id: 'u-1', fullName: 'Tên Cũ' })
-        .mockResolvedValueOnce({ id: 'u-1', fullName: 'Tên Mới', email: 'a@b.com' });
+        .mockResolvedValueOnce({
+          id: 'u-1',
+          fullName: 'Tên Mới',
+          email: 'a@b.com',
+        });
 
       mockPrismaService.candidateProfile.upsert.mockResolvedValue({
         id: 'cp-1',
