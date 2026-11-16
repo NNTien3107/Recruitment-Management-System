@@ -8,7 +8,7 @@ import { JobStatus, Prisma } from '@prisma/client';
 import { buildPaginated } from '../common/utils/pagination';
 import { PrismaService } from '../prisma/prisma.service';
 import { CreateJobDto } from './dto/create-job.dto';
-import { QueryJobsDto } from './dto/query-jobs.dto';
+import { JobSort, QueryJobsDto } from './dto/query-jobs.dto';
 import { UpdateJobDto } from './dto/update-job.dto';
 
 @Injectable()
@@ -66,16 +66,49 @@ export class JobsService {
   }
 
   /**
-   * Danh sách tin tuyển dụng công khai cho ứng viên/khách (UC05)
-   * Chỉ hiển thị tin đã APPROVED và chưa bị xóa mềm (deletedAt == null).
+   * Danh sách tin tuyển dụng công khai cho ứng viên/khách (UC05, FR-17, FR-18, FR-19)
+   * Chỉ hiển thị tin đã APPROVED, chưa xóa mềm (deletedAt == null) và còn hạn nộp đơn.
    */
   async findAllPublic(query: QueryJobsDto) {
-    const { page, pageSize, keyword, location, jobType, level, companyId, salaryMin, salaryMax } =
-      query;
+    const {
+      page,
+      pageSize,
+      keyword,
+      skills,
+      location,
+      jobType,
+      level,
+      companyId,
+      salaryMin,
+      salaryMax,
+      sort = JobSort.NEWEST,
+    } = query;
+
+    if (salaryMin != null && salaryMax != null && salaryMin > salaryMax) {
+      throw new BadRequestException('Mức lương tối thiểu không được lớn hơn mức lương tối đa');
+    }
+
+    const now = new Date();
+    const andConditions: Prisma.JobWhereInput[] = [
+      {
+        OR: [{ deadline: null }, { deadline: { gte: now } }],
+      },
+    ];
+
+    if (keyword) {
+      andConditions.push({
+        OR: [
+          { title: { contains: keyword, mode: 'insensitive' } },
+          { description: { contains: keyword, mode: 'insensitive' } },
+        ],
+      });
+    }
 
     const where: Prisma.JobWhereInput = {
       status: JobStatus.APPROVED,
       deletedAt: null,
+      AND: andConditions,
+      ...(skills && skills.length > 0 && { skills: { hasSome: skills } }),
       ...(location && { location: { contains: location, mode: 'insensitive' } }),
       ...(jobType && { jobType }),
       ...(level && { level }),
@@ -86,18 +119,29 @@ export class JobsService {
       ...(salaryMax != null && {
         salaryMin: { lte: salaryMax },
       }),
-      ...(keyword && {
-        OR: [
-          { title: { contains: keyword, mode: 'insensitive' } },
-          { description: { contains: keyword, mode: 'insensitive' } },
-        ],
-      }),
     };
+
+    let orderBy: Prisma.JobOrderByWithRelationInput | Prisma.JobOrderByWithRelationInput[];
+    switch (sort) {
+      case JobSort.OLDEST:
+        orderBy = { createdAt: 'asc' };
+        break;
+      case JobSort.SALARY_DESC:
+        orderBy = [{ salaryMax: { sort: 'desc', nulls: 'last' } }, { createdAt: 'desc' }];
+        break;
+      case JobSort.SALARY_ASC:
+        orderBy = [{ salaryMin: { sort: 'asc', nulls: 'last' } }, { createdAt: 'desc' }];
+        break;
+      case JobSort.NEWEST:
+      default:
+        orderBy = { createdAt: 'desc' };
+        break;
+    }
 
     const [items, total] = await this.prisma.$transaction([
       this.prisma.job.findMany({
         where,
-        orderBy: { createdAt: 'desc' },
+        orderBy,
         skip: (page - 1) * pageSize,
         take: pageSize,
         include: {
@@ -150,11 +194,22 @@ export class JobsService {
   }
 
   /**
-   * Chi tiết tin tuyển dụng (UC06)
+   * Chi tiết tin tuyển dụng (UC06, FR-20)
+   * @param onlyApproved Nếu true, chỉ cho phép xem tin đã APPROVED và còn hạn (dành cho Guest/Candidate)
    */
-  async findOne(id: string) {
+  async findOne(id: string, onlyApproved = false) {
+    const now = new Date();
+    const where: Prisma.JobWhereInput = {
+      id,
+      deletedAt: null,
+      ...(onlyApproved && {
+        status: JobStatus.APPROVED,
+        OR: [{ deadline: null }, { deadline: { gte: now } }],
+      }),
+    };
+
     const job = await this.prisma.job.findFirst({
-      where: { id, deletedAt: null },
+      where,
       include: {
         company: {
           select: {

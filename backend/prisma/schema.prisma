@@ -13,6 +13,23 @@ enum Role {
   ADMIN
 }
 
+model User {
+  id           String   @id @default(uuid())
+  email        String   @unique // BR-01
+  passwordHash String
+  fullName     String
+  role         Role     @default(CANDIDATE)
+  isLocked     Boolean  @default(false)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+  refreshTokens RefreshToken[]
+  company Company? // chỉ Recruiter mới có (1-1)
+
+  @@map("users")
+}
+
+// ===================== Company & Jobs (Nam) =====================
+
 enum JobStatus {
   DRAFT
   PENDING
@@ -189,4 +206,18 @@ model ApplicationStatusHistory {
   createdAt     DateTime           @default(now())
 
   @@map("application_status_histories")
+model RefreshToken {
+  id        String    @id @default(uuid())
+  userId    String
+  familyId  String
+  tokenHash String    @unique
+  expiresAt DateTime
+  revokedAt DateTime?
+  createdAt DateTime  @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([familyId])
+  @@map("refresh_tokens")
 }

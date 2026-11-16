@@ -30,7 +30,9 @@ export class JobsController {
   }
 
   @Get()
-  @ApiOperation({ summary: 'Danh sách việc làm công khai cho ứng viên/khách (UC05)' })
+  @ApiOperation({
+    summary: 'Tìm kiếm, lọc và phân trang danh sách việc làm công khai (UC05, FR-17, FR-18, FR-19)',
+  })
   findAllPublic(@Query() query: QueryJobsDto) {
     return this.jobsService.findAllPublic(query);
   }
@@ -53,9 +55,11 @@ export class JobsController {
   }
 
   @Get(':id')
-  @ApiOperation({ summary: 'Xem chi tiết tin tuyển dụng (UC06)' })
+  @ApiOperation({
+    summary: 'Xem chi tiết tin tuyển dụng và công ty (UC06, FR-20 - chỉ tin đã duyệt và đang mở)',
+  })
   findOne(@Param('id', ParseUUIDPipe) id: string) {
-    return this.jobsService.findOne(id);
+    return this.jobsService.findOne(id, true);
   }
 
   @Patch(':id')
