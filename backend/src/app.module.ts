@@ -1,14 +1,15 @@
 import { Module, ValidationPipe } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 import { APP_FILTER, APP_INTERCEPTOR, APP_PIPE } from '@nestjs/core';
+
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { AllExceptionsFilter } from './common/filters/all-exceptions.filter';
 import { ResponseInterceptor } from './common/interceptors/response.interceptor';
+import { StorageModule } from './common/storage/storage.module';
 import { validateEnv } from './config/env.validation';
 import { HealthController } from './health/health.controller';
 import { PrismaModule } from './prisma/prisma.module';
-import { StorageModule } from './common/storage/storage.module';
 import { UsersModule } from './users/users.module';
 import { CandidatesModule } from './candidates/candidates.module';
 import { CvsModule } from './cvs/cvs.module';
@@ -32,7 +33,6 @@ import { AdminModule } from './admin/admin.module';
     CandidatesModule,
     CvsModule,
     ApplicationsModule,
-    UsersModule,
     CompaniesModule,
     AuthModule,
     JobsModule,
@@ -44,9 +44,9 @@ import { AdminModule } from './admin/admin.module';
     {
       provide: APP_PIPE,
       useValue: new ValidationPipe({
-        whitelist: true, // bỏ field không khai báo trong DTO
-        forbidNonWhitelisted: true, // gửi field lạ thì báo lỗi 400
-        transform: true, // tự ép kiểu theo DTO
+        whitelist: true,
+        forbidNonWhitelisted: true,
+        transform: true,
       }),
     },
     { provide: APP_FILTER, useClass: AllExceptionsFilter },
