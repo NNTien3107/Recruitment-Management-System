@@ -2,6 +2,7 @@ import {
   Body,
   Controller,
   Delete,
+  ForbiddenException,
   Get,
   Param,
   ParseUUIDPipe,
@@ -10,94 +11,98 @@ import {
   Res,
   UnauthorizedException,
   UploadedFile,
+  UseGuards,
   UseInterceptors,
 } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
-import { ApiBody, ApiConsumes, ApiHeader, ApiOperation, ApiTags } from '@nestjs/swagger';
+import { Role } from '@prisma/client';
+import {
+  ApiBearerAuth,
+  ApiBody,
+  ApiConsumes,
+  ApiOperation,
+  ApiTags,
+} from '@nestjs/swagger';
 import type { Response } from 'express';
-import { CurrentUser, RequestUser } from '../common/decorators/current-user.decorator';
+
+import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
+import { CurrentUser } from '../common/decorators/current-user.decorator';
+import type { RequestUser } from '../common/decorators/current-user.decorator';
 import { CvsService } from './cvs.service';
 import { UpdateCvDto } from './dto/update-cv.dto';
 import { UploadCvDto } from './dto/upload-cv.dto';
 
 @ApiTags('cvs')
+@ApiBearerAuth()
+@UseGuards(JwtAuthGuard)
 @Controller('cvs')
 export class CvsController {
   constructor(private readonly cvsService: CvsService) {}
 
-  // TODO: @UseGuards(JwtAuthGuard, RolesGuard)
-  // TODO: @Roles(Role.CANDIDATE)
+  private getCandidateId(user: RequestUser | undefined): string {
+    if (!user?.id) {
+      throw new UnauthorizedException('Vui lòng đăng nhập');
+    }
+
+    if (user.role !== Role.CANDIDATE) {
+      throw new ForbiddenException('Chỉ ứng viên mới được thực hiện thao tác này');
+    }
+
+    return user.id;
+  }
+
   @Post('upload')
   @ApiOperation({ summary: 'Upload file CV mới (PDF/DOCX <= 5MB) (UC08)' })
   @ApiConsumes('multipart/form-data')
-  @ApiHeader({
-    name: 'x-user-id',
-    description: 'ID ứng viên (dùng tạm khi chưa có JwtAuthGuard)',
-    required: false,
-  })
   @ApiBody({
     schema: {
       type: 'object',
       properties: {
-        file: { type: 'string', format: 'binary', description: 'File CV (PDF hoặc DOCX)' },
+        file: {
+          type: 'string',
+          format: 'binary',
+          description: 'File CV (PDF hoặc DOCX)',
+        },
         name: { type: 'string', description: 'Tên gợi nhớ của CV' },
         isDefault: { type: 'boolean', description: 'Đặt làm CV mặc định' },
       },
       required: ['file'],
     },
   })
-  @UseInterceptors(FileInterceptor('file'))
+  @UseInterceptors(
+    FileInterceptor('file', {
+      limits: { fileSize: 5 * 1024 * 1024 },
+    }),
+  )
   async uploadCv(
-    @CurrentUser('id') candidateId: string | undefined,
+    @CurrentUser() user: RequestUser | undefined,
     @UploadedFile()
     file: { buffer?: Buffer; originalname?: string; size?: number; mimetype?: string } | undefined,
     @Body() dto: UploadCvDto,
   ) {
-    if (!candidateId) {
-      throw new UnauthorizedException('Vui lòng đăng nhập để tải lên CV');
-    }
+    const candidateId = this.getCandidateId(user);
     return this.cvsService.upload(candidateId, file, dto);
   }
 
-  // TODO: @UseGuards(JwtAuthGuard, RolesGuard)
-  // TODO: @Roles(Role.CANDIDATE)
   @Get()
   @ApiOperation({ summary: 'Danh sách CV của ứng viên đang đăng nhập (UC08)' })
-  @ApiHeader({
-    name: 'x-user-id',
-    description: 'ID ứng viên',
-    required: false,
-  })
-  async findAll(@CurrentUser('id') candidateId?: string) {
-    if (!candidateId) {
-      throw new UnauthorizedException('Vui lòng đăng nhập để xem danh sách CV');
-    }
+  async findAll(@CurrentUser() user: RequestUser | undefined) {
+    const candidateId = this.getCandidateId(user);
     return this.cvsService.findAll(candidateId);
   }
 
-  // TODO: @UseGuards(JwtAuthGuard, RolesGuard)
   @Get(':id')
   @ApiOperation({ summary: 'Xem chi tiết thông tin một CV' })
-  @ApiHeader({
-    name: 'x-user-id',
-    description: 'ID người dùng',
-    required: false,
-  })
-  async findOne(@Param('id', ParseUUIDPipe) id: string, @CurrentUser('id') candidateId?: string) {
-    if (!candidateId) {
-      throw new UnauthorizedException('Vui lòng đăng nhập');
-    }
+  async findOne(
+    @Param('id', ParseUUIDPipe) id: string,
+    @CurrentUser() user: RequestUser | undefined,
+  ) {
+    const candidateId = this.getCandidateId(user);
     return this.cvsService.findOne(id, candidateId);
   }
 
-  // TODO: @UseGuards(JwtAuthGuard, RolesGuard)
   @Get(':id/download')
   @ApiOperation({ summary: 'Tải xuống file CV với kiểm quyền bảo mật (UC08/UC17)' })
-  @ApiHeader({
-    name: 'x-user-id',
-    description: 'ID người dùng',
-    required: false,
-  })
   async downloadCv(
     @Param('id', ParseUUIDPipe) id: string,
     @CurrentUser() user: RequestUser | undefined,
@@ -110,6 +115,7 @@ export class CvsController {
     const { cv, storedFile } = await this.cvsService.getDownloadStream(id, user);
 
     const safeFilename = encodeURIComponent(cv.originalName);
+
     res.setHeader('Content-Type', cv.mimeType || 'application/octet-stream');
     res.setHeader(
       'Content-Disposition',
@@ -119,58 +125,34 @@ export class CvsController {
     storedFile.stream.pipe(res);
   }
 
-  // TODO: @UseGuards(JwtAuthGuard, RolesGuard)
-  // TODO: @Roles(Role.CANDIDATE)
   @Patch(':id/default')
   @ApiOperation({ summary: 'Đặt một CV làm CV mặc định' })
-  @ApiHeader({
-    name: 'x-user-id',
-    description: 'ID ứng viên',
-    required: false,
-  })
   async setDefault(
     @Param('id', ParseUUIDPipe) id: string,
-    @CurrentUser('id') candidateId?: string,
+    @CurrentUser() user: RequestUser | undefined,
   ) {
-    if (!candidateId) {
-      throw new UnauthorizedException('Vui lòng đăng nhập');
-    }
+    const candidateId = this.getCandidateId(user);
     return this.cvsService.setDefault(id, candidateId);
   }
 
-  // TODO: @UseGuards(JwtAuthGuard, RolesGuard)
-  // TODO: @Roles(Role.CANDIDATE)
   @Patch(':id')
   @ApiOperation({ summary: 'Cập nhật tên hoặc trạng thái của CV' })
-  @ApiHeader({
-    name: 'x-user-id',
-    description: 'ID ứng viên',
-    required: false,
-  })
   async update(
     @Param('id', ParseUUIDPipe) id: string,
-    @CurrentUser('id') candidateId: string | undefined,
+    @CurrentUser() user: RequestUser | undefined,
     @Body() dto: UpdateCvDto,
   ) {
-    if (!candidateId) {
-      throw new UnauthorizedException('Vui lòng đăng nhập');
-    }
+    const candidateId = this.getCandidateId(user);
     return this.cvsService.update(id, candidateId, dto);
   }
 
-  // TODO: @UseGuards(JwtAuthGuard, RolesGuard)
-  // TODO: @Roles(Role.CANDIDATE)
   @Delete(':id')
   @ApiOperation({ summary: 'Xóa CV khỏi hệ thống và ổ đĩa (UC08)' })
-  @ApiHeader({
-    name: 'x-user-id',
-    description: 'ID ứng viên',
-    required: false,
-  })
-  async delete(@Param('id', ParseUUIDPipe) id: string, @CurrentUser('id') candidateId?: string) {
-    if (!candidateId) {
-      throw new UnauthorizedException('Vui lòng đăng nhập');
-    }
+  async delete(
+    @Param('id', ParseUUIDPipe) id: string,
+    @CurrentUser() user: RequestUser | undefined,
+  ) {
+    const candidateId = this.getCandidateId(user);
     return this.cvsService.delete(id, candidateId);
   }
 }
