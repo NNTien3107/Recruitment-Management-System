@@ -852,6 +852,190 @@
   font-weight: 700;
 }
 
+/* Recruiter Jobs Management (UC14, UC15, BR-04, BR-05, BR-08) */
+.rms-alert-warning {
+  background: #fffbeb;
+  border: 1px solid #fde68a;
+  color: #92400e;
+}
+
+.rms-br04-warning {
+  max-width: 680px;
+  margin: 24px auto;
+  border: 1px solid #bfdbfe;
+  background: linear-gradient(180deg, #eff6ff 0%, #ffffff 100%);
+}
+
+.rms-br04-badge {
+  display: inline-block;
+  padding: 4px 12px;
+  border-radius: 999px;
+  background: var(--rms-primary);
+  color: #fff;
+  font-size: 12px;
+  font-weight: 700;
+  margin-bottom: 12px;
+}
+
+.rms-form-card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding-bottom: 16px;
+  margin-bottom: 20px;
+  border-bottom: 1px solid var(--rms-border);
+}
+
+.rms-filter-bar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  background: var(--rms-surface);
+  border: 1px solid var(--rms-border);
+  border-radius: var(--rms-radius);
+  padding: 16px;
+  margin-bottom: 20px;
+}
+
+.rms-filter-bar-left {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+  flex: 1;
+}
+
+.rms-filter-search-input {
+  max-width: 320px;
+}
+
+.rms-filter-status-select {
+  width: 220px;
+}
+
+.rms-job-title-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+}
+
+.rms-badge-status-approved {
+  background: var(--rms-success-soft);
+  color: var(--rms-success);
+  border: 1px solid #a7f3d0;
+  font-weight: 700;
+}
+
+.rms-badge-status-pending {
+  background: #fffbeb;
+  color: #b45309;
+  border: 1px solid #fde68a;
+  font-weight: 700;
+}
+
+.rms-badge-status-rejected {
+  background: var(--rms-danger-soft);
+  color: var(--rms-danger);
+  border: 1px solid #fecaca;
+  font-weight: 700;
+}
+
+.rms-badge-status-closed {
+  background: #f1f5f9;
+  color: #475569;
+  border: 1px solid #cbd5e1;
+  font-weight: 700;
+}
+
+.rms-badge-status-draft {
+  background: #f8fafc;
+  color: #64748b;
+  border: 1px dashed #cbd5e1;
+  font-weight: 600;
+}
+
+.rms-reject-reason-box {
+  background: var(--rms-danger-soft);
+  border-left: 4px solid var(--rms-danger);
+  color: #991b1b;
+  padding: 10px 14px;
+  border-radius: 6px;
+  font-size: 13px;
+  margin-bottom: 12px;
+}
+
+.rms-recruiter-job-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+}
+
+.rms-btn-danger {
+  background: var(--rms-danger);
+  color: #fff;
+}
+
+.rms-btn-danger:hover:not(:disabled) {
+  background: #b91c1c;
+}
+
+.rms-btn-danger-outline {
+  background: #fff;
+  border-color: #fecaca;
+  color: var(--rms-danger);
+}
+
+.rms-btn-danger-outline:hover:not(:disabled) {
+  background: var(--rms-danger-soft);
+  border-color: var(--rms-danger);
+}
+
+/* Modal */
+.rms-modal-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(15, 23, 42, 0.55);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  z-index: 100;
+}
+
+.rms-modal {
+  background: var(--rms-surface);
+  border-radius: var(--rms-radius);
+  max-width: 520px;
+  width: 100%;
+  padding: 24px;
+  box-shadow: var(--rms-shadow-md);
+  text-align: left;
+}
+
+.rms-modal-title {
+  margin: 0 0 12px;
+  font-size: 18px;
+  font-weight: 700;
+}
+
+.rms-modal-body {
+  margin: 0 0 20px;
+  color: var(--rms-text-secondary);
+  font-size: 14px;
+  line-height: 1.6;
+}
+
+.rms-modal-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+}
+
 .rms-muted {
   color: var(--rms-text-muted);
   font-size: 14px;
