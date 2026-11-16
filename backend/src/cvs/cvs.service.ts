@@ -30,12 +30,6 @@ export class CvsService {
     private readonly storageService: StorageService,
   ) {}
 
-  /**
-   * Tải lên và lưu trữ CV ứng viên (UC08).
-   * - Xác thực chữ ký nhị phân (PDF/DOCX <= 5MB) tại backend.
-   * - Lưu trữ file an toàn qua StorageService với tên ngẫu nhiên (UUID).
-   * - Quản lý trạng thái CV mặc định.
-   */
   async upload(
     candidateId: string,
     file?: { buffer?: Buffer; originalname?: string; size?: number; mimetype?: string },
@@ -45,56 +39,57 @@ export class CvsService {
       throw new BadRequestException('ID ứng viên không hợp lệ');
     }
 
-    // 1. Kiểm tra tính hợp lệ của file (Magic Bytes & kích thước <= 5MB)
     const validated = validateCvFile(file);
 
-    // 2. Tải file lên storage vào thư mục con 'cvs'
     const uploadResult = await this.storageService.upload(
       {
         buffer: file!.buffer!,
         originalname: file!.originalname || `cv${validated.extension}`,
         mimetype: validated.mimeType,
-        size: file!.size ?? file!.buffer!.length,
+        size: file!.buffer!.length,
       },
       { folder: 'cvs' },
     );
 
-    // 3. Xử lý CV mặc định:
-    // Nếu là CV đầu tiên của ứng viên, tự động đặt làm mặc định
-    const existingCvsCount = await this.prisma.cv.count({
-      where: { candidateId },
-    });
-    const shouldBeDefault = dto?.isDefault || existingCvsCount === 0;
+    try {
+      const cvName =
+        dto?.name?.trim() ||
+        file!.originalname ||
+        `CV ${new Date().toLocaleDateString()}`;
 
-    // 4. Nếu đặt làm mặc định, hủy cờ isDefault của các CV khác
-    if (shouldBeDefault && existingCvsCount > 0) {
-      await this.prisma.cv.updateMany({
-        where: { candidateId, isDefault: true },
-        data: { isDefault: false },
+      return await this.prisma.$transaction(async (tx) => {
+        const existingCvsCount = await tx.cv.count({
+          where: { candidateId },
+        });
+
+        const shouldBeDefault = dto?.isDefault === true || existingCvsCount === 0;
+
+        if (shouldBeDefault) {
+          await tx.cv.updateMany({
+            where: { candidateId, isDefault: true },
+            data: { isDefault: false },
+          });
+        }
+
+        return tx.cv.create({
+          data: {
+            candidateId,
+            name: cvName,
+            fileKey: uploadResult.key,
+            originalName: file!.originalname || uploadResult.filename,
+            mimeType: validated.mimeType,
+            fileSize: uploadResult.size,
+            isDefault: shouldBeDefault,
+          },
+          select: cvSelect,
+        });
       });
+    } catch (error) {
+      await this.storageService.delete(uploadResult.key).catch(() => undefined);
+      throw error;
     }
-
-    const cvName =
-      dto?.name?.trim() || file!.originalname || `CV ${new Date().toLocaleDateString()}`;
-
-    // 5. Lưu thông tin CV vào Database
-    return this.prisma.cv.create({
-      data: {
-        candidateId,
-        name: cvName,
-        fileKey: uploadResult.key,
-        originalName: file!.originalname || uploadResult.filename,
-        mimeType: validated.mimeType,
-        fileSize: uploadResult.size,
-        isDefault: shouldBeDefault,
-      },
-      select: cvSelect,
-    });
   }
 
-  /**
-   * Lấy danh sách toàn bộ CV của một ứng viên.
-   */
   async findAll(candidateId: string) {
     return this.prisma.cv.findMany({
       where: { candidateId },
@@ -103,10 +98,7 @@ export class CvsService {
     });
   }
 
-  /**
-   * Xem thông tin chi tiết một CV (chỉ chủ sở hữu).
-   */
-  async findOne(id: string, candidateId?: string) {
+  async findOne(id: string, candidateId: string) {
     const cv = await this.prisma.cv.findUnique({
       where: { id },
       select: cvSelect,
@@ -116,17 +108,13 @@ export class CvsService {
       throw new NotFoundException('Không tìm thấy thông tin CV');
     }
 
-    if (candidateId && cv.candidateId !== candidateId) {
+    if (cv.candidateId !== candidateId) {
       throw new ForbiddenException('Bạn không có quyền truy cập CV này');
     }
 
     return cv;
   }
 
-  /**
-   * Tải xuống file CV với cơ chế kiểm tra quyền truy cập chặt chẽ (UC08 / UC17):
-   * - Chỉ chủ sở hữu CV (Candidate) hoặc Recruiter quản lý tin mà ứng viên đã ứng tuyển mới được tải.
-   */
   async getDownloadStream(id: string, requester: { id: string; role?: string }) {
     const cv = await this.prisma.cv.findUnique({ where: { id } });
 
@@ -137,7 +125,6 @@ export class CvsService {
     const isOwner = cv.candidateId === requester.id;
     const isAdmin = requester.role === 'ADMIN';
 
-    // Nếu không phải chủ sở hữu hoặc Admin, kiểm tra xem có phải Recruiter liên quan không
     if (!isOwner && !isAdmin) {
       if (requester.role === 'RECRUITER') {
         const hasApplied = await this.prisma.application.findFirst({
@@ -146,6 +133,7 @@ export class CvsService {
             job: { company: { ownerId: requester.id } },
           },
         });
+
         if (!hasApplied) {
           throw new ForbiddenException('Bạn không có quyền tải xuống CV này');
         }
@@ -156,65 +144,55 @@ export class CvsService {
 
     const storedFile = await this.storageService.getFile(cv.fileKey);
 
-    return {
-      cv,
-      storedFile,
-    };
+    return { cv, storedFile };
   }
 
-  /**
-   * Cập nhật thông tin CV (tên, cờ mặc định).
-   */
   async update(id: string, candidateId: string, dto: UpdateCvDto) {
     await this.findOne(id, candidateId);
 
-    if (dto.isDefault) {
-      await this.prisma.cv.updateMany({
-        where: { candidateId, isDefault: true },
-        data: { isDefault: false },
-      });
-    }
+    return this.prisma.$transaction(async (tx) => {
+      if (dto.isDefault === true) {
+        await tx.cv.updateMany({
+          where: { candidateId, isDefault: true },
+          data: { isDefault: false },
+        });
+      }
 
-    return this.prisma.cv.update({
-      where: { id },
-      data: {
-        ...(dto.name !== undefined && { name: dto.name }),
-        ...(dto.isDefault !== undefined && { isDefault: dto.isDefault }),
-      },
-      select: cvSelect,
+      return tx.cv.update({
+        where: { id },
+        data: {
+          ...(dto.name !== undefined && { name: dto.name }),
+          ...(dto.isDefault !== undefined && { isDefault: dto.isDefault }),
+        },
+        select: cvSelect,
+      });
     });
   }
 
-  /**
-   * Đặt một CV làm mặc định.
-   */
   async setDefault(id: string, candidateId: string) {
     return this.update(id, candidateId, { isDefault: true });
   }
 
-  /**
-   * Xóa file CV: Xóa file vật lý qua StorageService và xóa bản ghi DB.
-   */
   async delete(id: string, candidateId: string) {
     const cv = await this.findOne(id, candidateId);
 
-    // Kiểm tra xem CV đã được sử dụng trong đơn ứng tuyển nào chưa
     const activeApplicationsCount = await this.prisma.application.count({
       where: { cvId: id },
     });
+
     if (activeApplicationsCount > 0) {
-      throw new BadRequestException('Không thể xóa CV này vì đã được sử dụng trong đơn ứng tuyển');
+      throw new BadRequestException(
+        'Không thể xóa CV này vì đã được sử dụng trong đơn ứng tuyển',
+      );
     }
 
-    // 1. Xóa file khỏi ổ đĩa
+    await this.prisma.cv.delete({ where: { id } });
+
     try {
       await this.storageService.delete(cv.fileKey);
     } catch {
-      // Tiếp tục xóa bản ghi DB ngay cả khi file vật lý đã không còn trên đĩa
+      // Bản ghi đã xóa; lỗi xóa file vật lý cần được xử lý riêng.
     }
-
-    // 2. Xóa bản ghi trong database
-    await this.prisma.cv.delete({ where: { id } });
 
     return { message: 'Đã xóa CV thành công' };
   }
