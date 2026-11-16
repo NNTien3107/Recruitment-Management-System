@@ -4,6 +4,7 @@ import { CompanyDetailPage } from './pages/CompanyDetailPage';
 import { JobDetailPage } from './pages/JobDetailPage';
 import { JobsSearchPage } from './pages/JobsSearchPage';
 import { RecruiterCompanyPage } from './pages/RecruiterCompanyPage';
+import { RecruiterJobsPage } from './pages/RecruiterJobsPage';
 import { usePathname } from './utils/navigation';
 
 function App() {
@@ -12,6 +13,10 @@ function App() {
   const renderPage = () => {
     if (pathname === '/recruiter/company') {
       return <RecruiterCompanyPage />;
+    }
+
+    if (pathname === '/recruiter/jobs') {
+      return <RecruiterJobsPage />;
     }
 
     const jobMatch = /^\/jobs\/([^/]+)$/.exec(pathname);
