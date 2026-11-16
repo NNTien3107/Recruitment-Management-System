@@ -13,23 +13,6 @@ enum Role {
   ADMIN
 }
 
-model User {
-  id           String   @id @default(uuid())
-  email        String   @unique // BR-01
-  passwordHash String
-  fullName     String
-  role         Role     @default(CANDIDATE)
-  isLocked     Boolean  @default(false)
-  createdAt    DateTime @default(now())
-  updatedAt    DateTime @updatedAt
-  refreshTokens RefreshToken[]
-  company Company? // chỉ Recruiter mới có (1-1)
-
-  @@map("users")
-}
-
-// ===================== Company & Jobs (Nam) =====================
-
 enum JobStatus {
   DRAFT
   PENDING
@@ -67,20 +50,21 @@ enum ApplicationStatus {
 }
 
 model User {
-  id           String   @id @default(uuid())
-  email        String   @unique
-  passwordHash String
-  fullName     String
-  role         Role     @default(CANDIDATE)
-  isLocked     Boolean  @default(false)
-  createdAt    DateTime @default(now())
-  updatedAt    DateTime @updatedAt
+  id                String   @id @default(uuid())
+  email             String   @unique
+  passwordHash      String
+  fullName          String
+  role              Role     @default(CANDIDATE)
+  isLocked          Boolean  @default(false)
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
 
-  company          Company?
-  candidateProfile CandidateProfile?
-  cvs              Cv[]
-  applications     Application[]              @relation("CandidateApplications")
-  statusChanges    ApplicationStatusHistory[]
+  refreshTokens     RefreshToken[]
+  company           Company?
+  candidateProfile  CandidateProfile?
+  cvs               Cv[]
+  applications      Application[] @relation("CandidateApplications")
+  statusChanges     ApplicationStatusHistory[]
 
   @@map("users")
 }
@@ -98,7 +82,7 @@ model Company {
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
-  owner User  @relation(fields: [ownerId], references: [id], onDelete: Restrict)
+  owner User @relation(fields: [ownerId], references: [id], onDelete: Restrict)
   jobs  Job[]
 
   @@map("companies")
@@ -207,6 +191,7 @@ model ApplicationStatusHistory {
 
   @@map("application_status_histories")
 }
+
 model RefreshToken {
   id        String    @id @default(uuid())
   userId    String
