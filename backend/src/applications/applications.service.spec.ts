@@ -42,30 +42,28 @@ describe('ApplicationsService', () => {
     notify: jest.fn(),
   };
 
-  
-beforeEach(async () => {
-  jest.resetAllMocks();
+  beforeEach(async () => {
+    jest.resetAllMocks();
 
-  // Khôi phục implementation của Prisma transaction sau resetAllMocks
-  mockPrisma.$transaction.mockImplementation((callbackOrArray: any) => {
-    if (typeof callbackOrArray === 'function') {
-      return callbackOrArray(mockPrisma);
-    }
-    return Promise.all(callbackOrArray);
+    // Khôi phục implementation của Prisma transaction sau resetAllMocks
+    mockPrisma.$transaction.mockImplementation((callbackOrArray: any) => {
+      if (typeof callbackOrArray === 'function') {
+        return callbackOrArray(mockPrisma);
+      }
+      return Promise.all(callbackOrArray);
+    });
+
+    const module: TestingModule = await Test.createTestingModule({
+      providers: [
+        ApplicationsService,
+        { provide: PrismaService, useValue: mockPrisma },
+        { provide: StorageService, useValue: mockStorageService },
+        { provide: NotificationService, useValue: mockNotificationService },
+      ],
+    }).compile();
+
+    service = module.get<ApplicationsService>(ApplicationsService);
   });
-
-  const module: TestingModule = await Test.createTestingModule({
-    providers: [
-      ApplicationsService,
-      { provide: PrismaService, useValue: mockPrisma },
-      { provide: StorageService, useValue: mockStorageService },
-      { provide: NotificationService, useValue: mockNotificationService },
-    ],
-  }).compile();
-
-  service = module.get<ApplicationsService>(ApplicationsService);
-});
-
 
   describe('apply (UC09)', () => {
     const candidateId = 'cand-1';

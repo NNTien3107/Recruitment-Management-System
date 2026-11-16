@@ -16,9 +16,7 @@ export function validateEnv(config: Record<string, unknown>): Env {
   const result = envSchema.safeParse(config);
 
   if (!result.success) {
-    const details = result.error.issues
-      .map((i) => `${i.path.join('.')}: ${i.message}`)
-      .join('; ');
+    const details = result.error.issues.map((i) => `${i.path.join('.')}: ${i.message}`).join('; ');
 
     throw new Error(`Biến môi trường không hợp lệ: ${details}`);
   }

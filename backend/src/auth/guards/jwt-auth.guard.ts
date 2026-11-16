@@ -1,9 +1,4 @@
-import {
-  CanActivate,
-  ExecutionContext,
-  Injectable,
-  UnauthorizedException,
-} from '@nestjs/common';
+import { CanActivate, ExecutionContext, Injectable, UnauthorizedException } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import type { Request } from 'express';
 import { JwtPayload } from '../types/jwt-payload';
@@ -15,7 +10,7 @@ interface AuthenticatedRequest extends Request {
 
 @Injectable()
 export class JwtAuthGuard implements CanActivate {
-  constructor(private readonly jwtService: JwtService) { }
+  constructor(private readonly jwtService: JwtService) {}
 
   async canActivate(context: ExecutionContext): Promise<boolean> {
     const request = context.switchToHttp().getRequest<AuthenticatedRequest>();
@@ -50,9 +45,7 @@ export class JwtAuthGuard implements CanActivate {
         throw error;
       }
 
-      throw new UnauthorizedException(
-        'Access token không hợp lệ hoặc đã hết hạn',
-      );
+      throw new UnauthorizedException('Access token không hợp lệ hoặc đã hết hạn');
     }
   }
 }

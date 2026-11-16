@@ -53,9 +53,7 @@ export class CvsService {
 
     try {
       const cvName =
-        dto?.name?.trim() ||
-        file!.originalname ||
-        `CV ${new Date().toLocaleDateString()}`;
+        dto?.name?.trim() || file!.originalname || `CV ${new Date().toLocaleDateString()}`;
 
       return await this.prisma.$transaction(async (tx) => {
         const existingCvsCount = await tx.cv.count({
@@ -181,9 +179,7 @@ export class CvsService {
     });
 
     if (activeApplicationsCount > 0) {
-      throw new BadRequestException(
-        'Không thể xóa CV này vì đã được sử dụng trong đơn ứng tuyển',
-      );
+      throw new BadRequestException('Không thể xóa CV này vì đã được sử dụng trong đơn ứng tuyển');
     }
 
     await this.prisma.cv.delete({ where: { id } });

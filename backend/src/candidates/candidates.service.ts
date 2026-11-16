@@ -81,10 +81,8 @@ export class CandidatesService {
         title: dto.title ?? null,
         bio: dto.bio ?? null,
         skills: dto.skills ?? [],
-        experience:
-          (dto.experience as unknown as Prisma.InputJsonValue) ?? [],
-        education:
-          (dto.education as unknown as Prisma.InputJsonValue) ?? [],
+        experience: (dto.experience as unknown as Prisma.InputJsonValue) ?? [],
+        education: (dto.education as unknown as Prisma.InputJsonValue) ?? [],
         avatarUrl: dto.avatarUrl ?? null,
       };
 

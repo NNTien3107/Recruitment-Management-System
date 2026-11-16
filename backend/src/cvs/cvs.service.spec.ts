@@ -5,48 +5,72 @@ import { StorageService } from '../common/storage';
 import { PrismaService } from '../prisma/prisma.service';
 import { CvsService } from './cvs.service';
 
+type UploadFile = Parameters<CvsService['upload']>[1];
+
+type AsyncMock = jest.MockedFunction<(...args: unknown[]) => Promise<unknown>>;
+
+type TransactionCallback = (transaction: MockPrisma) => Promise<unknown>;
+
+type MockPrisma = {
+  $transaction: jest.MockedFunction<(callback: TransactionCallback) => Promise<unknown>>;
+  cv: {
+    create: AsyncMock;
+    findUnique: AsyncMock;
+    findMany: AsyncMock;
+    update: AsyncMock;
+    updateMany: AsyncMock;
+    delete: AsyncMock;
+    count: AsyncMock;
+  };
+  application: {
+    count: AsyncMock;
+    findFirst: AsyncMock;
+  };
+};
+
 describe('CvsService', () => {
   let service: CvsService;
 
-  const mockPrisma = {
-    $transaction: jest.fn(),
+  const mockPrisma: MockPrisma = {
+    $transaction: jest.fn<(callback: TransactionCallback) => Promise<unknown>>(),
     cv: {
-      create: jest.fn(),
-      findUnique: jest.fn(),
-      findMany: jest.fn(),
-      update: jest.fn(),
-      updateMany: jest.fn(),
-      delete: jest.fn(),
-      count: jest.fn(),
+      create: jest.fn<(...args: unknown[]) => Promise<unknown>>(),
+      findUnique: jest.fn<(...args: unknown[]) => Promise<unknown>>(),
+      findMany: jest.fn<(...args: unknown[]) => Promise<unknown>>(),
+      update: jest.fn<(...args: unknown[]) => Promise<unknown>>(),
+      updateMany: jest.fn<(...args: unknown[]) => Promise<unknown>>(),
+      delete: jest.fn<(...args: unknown[]) => Promise<unknown>>(),
+      count: jest.fn<(...args: unknown[]) => Promise<unknown>>(),
     },
     application: {
-      count: jest.fn(),
-      findFirst: jest.fn(),
+      count: jest.fn<(...args: unknown[]) => Promise<unknown>>(),
+      findFirst: jest.fn<(...args: unknown[]) => Promise<unknown>>(),
     },
   };
 
   const mockStorageService = {
-    upload: jest.fn(),
-    getFile: jest.fn(),
-    delete: jest.fn(),
+    upload: jest.fn<(...args: unknown[]) => Promise<unknown>>(),
+    getFile: jest.fn<(...args: unknown[]) => Promise<unknown>>(),
+    delete: jest.fn<(...args: unknown[]) => Promise<unknown>>(),
   };
 
   const createMockFile = (
     buffer: Buffer,
     originalname: string,
     mimetype = 'application/octet-stream',
-  ): Express.Multer.File => ({
-    fieldname: 'file',
-    originalname,
-    encoding: '7bit',
-    mimetype,
-    size: buffer.length,
-    buffer,
-    stream: new Readable(),
-    destination: '',
-    filename: '',
-    path: '',
-  });
+  ): UploadFile =>
+    ({
+      fieldname: 'file',
+      originalname,
+      encoding: '7bit',
+      mimetype,
+      size: buffer.length,
+      buffer,
+      stream: new Readable(),
+      destination: '',
+      filename: '',
+      path: '',
+    }) as UploadFile;
 
   beforeEach(async () => {
     jest.clearAllMocks();
@@ -54,12 +78,7 @@ describe('CvsService', () => {
     mockPrisma.application.count.mockResolvedValue(0);
     mockStorageService.delete.mockResolvedValue(undefined);
 
-    mockPrisma.$transaction.mockImplementation((callbackOrArray: any) => {
-      if (typeof callbackOrArray === 'function') {
-        return callbackOrArray(mockPrisma);
-      }
-      return Promise.all(callbackOrArray);
-    });
+    mockPrisma.$transaction.mockImplementation((callback) => callback(mockPrisma));
 
     const module: TestingModule = await Test.createTestingModule({
       providers: [
@@ -71,9 +90,9 @@ describe('CvsService', () => {
 
     service = module.get<CvsService>(CvsService);
   });
+
   describe('upload', () => {
     it('upload CV file PDF hợp lệ thành công (chữ ký %PDF-)', async () => {
-      // Buffer bắt đầu bằng chữ ký nhị phân %PDF-
       const validPdfBuffer = Buffer.from('%PDF-1.4 sample content');
       const mockFile = createMockFile(validPdfBuffer, 'NguyenVanA_Resume.pdf');
 
@@ -84,7 +103,7 @@ describe('CvsService', () => {
         size: validPdfBuffer.length,
       });
 
-      mockPrisma.cv.count.mockResolvedValue(0); // CV đầu tiên
+      mockPrisma.cv.count.mockResolvedValue(0);
       mockPrisma.cv.create.mockResolvedValue({
         id: 'cv-1',
         candidateId: 'cand-1',
@@ -100,18 +119,19 @@ describe('CvsService', () => {
         expect.objectContaining({ mimetype: 'application/pdf' }),
         { folder: 'cvs' },
       );
+
       expect(mockPrisma.cv.create).toHaveBeenCalledWith({
         data: expect.objectContaining({
           isDefault: true,
           mimeType: 'application/pdf',
-        }),
+        }) as Record<string, unknown>,
         select: expect.any(Object) as Record<string, boolean>,
       });
+
       expect(result.id).toBe('cv-1');
     });
 
-    it('upload CV file DOCX hợp lệ thành công (chữ ký PK\x03\x04)', async () => {
-      // Buffer bắt đầu bằng chữ ký nhị phân PK\x03\x04 (ZIP)
+    it('upload CV file DOCX hợp lệ thành công (chữ ký PK\\x03\\x04)', async () => {
       const validDocxBuffer = Buffer.from([0x50, 0x4b, 0x03, 0x04, 0x14, 0x00, 0x06, 0x00]);
       const mockFile = createMockFile(validDocxBuffer, 'my-resume.docx');
 
@@ -137,18 +157,18 @@ describe('CvsService', () => {
     });
 
     it('từ chối file giả mạo đuôi extension có nội dung không phải PDF/DOCX', async () => {
-      // File text giả mạo đuôi .pdf
       const fakeFile = createMockFile(
         Buffer.from('Plain text content masquerading as PDF'),
         'fake.pdf',
       );
 
       await expect(service.upload('cand-1', fakeFile)).rejects.toBeInstanceOf(BadRequestException);
+
       expect(mockStorageService.upload).not.toHaveBeenCalled();
     });
 
     it('từ chối file vượt quá kích thước tối đa 5MB', async () => {
-      const oversizedBuffer = Buffer.alloc(6 * 1024 * 1024); // 6MB
+      const oversizedBuffer = Buffer.alloc(6 * 1024 * 1024);
       oversizedBuffer.write('%PDF-', 0);
 
       const largeFile = createMockFile(oversizedBuffer, 'huge.pdf');
@@ -156,6 +176,7 @@ describe('CvsService', () => {
       await expect(service.upload('cand-1', largeFile)).rejects.toThrow(
         'Kích thước file CV không được vượt quá 5MB',
       );
+
       expect(mockStorageService.upload).not.toHaveBeenCalled();
     });
   });
@@ -218,12 +239,16 @@ describe('CvsService', () => {
         candidateId: 'cand-1',
         fileKey: 'cvs/file-to-delete.pdf',
       });
+
       mockPrisma.application.count.mockResolvedValue(0);
 
       await service.delete('cv-1', 'cand-1');
 
       expect(mockStorageService.delete).toHaveBeenCalledWith('cvs/file-to-delete.pdf');
-      expect(mockPrisma.cv.delete).toHaveBeenCalledWith({ where: { id: 'cv-1' } });
+
+      expect(mockPrisma.cv.delete).toHaveBeenCalledWith({
+        where: { id: 'cv-1' },
+      });
     });
 
     it('từ chối xóa nếu CV đã được sử dụng trong đơn ứng tuyển', async () => {
@@ -231,11 +256,13 @@ describe('CvsService', () => {
         id: 'cv-1',
         candidateId: 'cand-1',
       });
-      mockPrisma.application.count.mockResolvedValue(2); // Có 2 đơn nộp
+
+      mockPrisma.application.count.mockResolvedValue(2);
 
       await expect(service.delete('cv-1', 'cand-1')).rejects.toThrow(
         'Không thể xóa CV này vì đã được sử dụng trong đơn ứng tuyển',
       );
+
       expect(mockStorageService.delete).not.toHaveBeenCalled();
       expect(mockPrisma.cv.delete).not.toHaveBeenCalled();
     });
@@ -247,6 +274,7 @@ describe('CvsService', () => {
       });
 
       await expect(service.delete('cv-1', 'other-cand')).rejects.toBeInstanceOf(ForbiddenException);
+
       expect(mockStorageService.delete).not.toHaveBeenCalled();
       expect(mockPrisma.cv.delete).not.toHaveBeenCalled();
     });
@@ -266,6 +294,7 @@ describe('CvsService', () => {
         where: { candidateId: 'cand-1', isDefault: true },
         data: { isDefault: false },
       });
+
       expect(mockPrisma.cv.update).toHaveBeenCalledWith({
         where: { id: 'cv-2' },
         data: { isDefault: true },

@@ -3,37 +3,45 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { PrismaService } from '../prisma/prisma.service';
 import { CandidatesService } from './candidates.service';
 
+type AsyncMock = jest.MockedFunction<(...args: unknown[]) => Promise<unknown>>;
+
+type MockPrismaService = {
+  user: {
+    findUnique: AsyncMock;
+    update: AsyncMock;
+  };
+  candidateProfile: {
+    upsert: AsyncMock;
+  };
+  $transaction: jest.MockedFunction<
+    (callback: (transaction: MockPrismaService) => Promise<unknown>) => Promise<unknown>
+  >;
+};
+
 describe('CandidatesService', () => {
   let service: CandidatesService;
 
-  const mockPrismaService = {
+  const mockPrismaService: MockPrismaService = {
     user: {
-      findUnique: jest.fn(),
-      update: jest.fn(),
+      findUnique: jest.fn<(...args: unknown[]) => Promise<unknown>>(),
+      update: jest.fn<(...args: unknown[]) => Promise<unknown>>(),
     },
     candidateProfile: {
-      upsert: jest.fn(),
+      upsert: jest.fn<(...args: unknown[]) => Promise<unknown>>(),
     },
-    $transaction: jest.fn(),
+    $transaction:
+      jest.fn<
+        (callback: (transaction: MockPrismaService) => Promise<unknown>) => Promise<unknown>
+      >(),
   };
 
   beforeEach(async () => {
     jest.resetAllMocks();
 
-    mockPrismaService.$transaction.mockImplementation(
-      (callbackOrArray: any) => {
-        if (typeof callbackOrArray === 'function') {
-          return callbackOrArray(mockPrismaService);
-        }
-        return Promise.all(callbackOrArray);
-      },
-    );
+    mockPrismaService.$transaction.mockImplementation((callback) => callback(mockPrismaService));
 
     const module: TestingModule = await Test.createTestingModule({
-      providers: [
-        CandidatesService,
-        { provide: PrismaService, useValue: mockPrismaService },
-      ],
+      providers: [CandidatesService, { provide: PrismaService, useValue: mockPrismaService }],
     }).compile();
 
     service = module.get<CandidatesService>(CandidatesService);
@@ -85,9 +93,7 @@ describe('CandidatesService', () => {
     it('báo lỗi NotFoundException nếu không tìm thấy người dùng', async () => {
       mockPrismaService.user.findUnique.mockResolvedValue(null);
 
-      await expect(
-        service.getProfile('unknown-id'),
-      ).rejects.toBeInstanceOf(NotFoundException);
+      await expect(service.getProfile('unknown-id')).rejects.toBeInstanceOf(NotFoundException);
     });
   });
 
@@ -95,9 +101,9 @@ describe('CandidatesService', () => {
     it('báo lỗi NotFoundException nếu người dùng không tồn tại', async () => {
       mockPrismaService.user.findUnique.mockResolvedValue(null);
 
-      await expect(
-        service.updateProfile('u-unknown', { title: 'Tester' }),
-      ).rejects.toBeInstanceOf(NotFoundException);
+      await expect(service.updateProfile('u-unknown', { title: 'Tester' })).rejects.toBeInstanceOf(
+        NotFoundException,
+      );
     });
 
     it('cập nhật họ tên người dùng và upsert thông tin hồ sơ', async () => {
@@ -128,7 +134,9 @@ describe('CandidatesService', () => {
         where: { id: 'u-1' },
         data: { fullName: 'Tên Mới' },
       });
+
       expect(mockPrismaService.candidateProfile.upsert).toHaveBeenCalled();
+
       expect(result.profile.title).toBe('Senior Developer');
     });
   });

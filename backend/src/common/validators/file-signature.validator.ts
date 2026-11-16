@@ -46,25 +46,18 @@ export function validateCvFile(file?: {
 
   // DOCX (ZIP signature)
   const isZip =
-    buffer[0] === 0x50 &&
-    buffer[1] === 0x4b &&
-    buffer[2] === 0x03 &&
-    buffer[3] === 0x04;
+    buffer[0] === 0x50 && buffer[1] === 0x4b && buffer[2] === 0x03 && buffer[3] === 0x04;
 
   if (isZip && ext === '.docx') {
     return {
-      mimeType:
-        'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+      mimeType: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
       extension: '.docx',
     };
   }
 
   // DOC cũ (OLE2 signature)
   const isLegacyDoc =
-    buffer[0] === 0xd0 &&
-    buffer[1] === 0xcf &&
-    buffer[2] === 0x11 &&
-    buffer[3] === 0xe0;
+    buffer[0] === 0xd0 && buffer[1] === 0xcf && buffer[2] === 0x11 && buffer[3] === 0xe0;
 
   if (isLegacyDoc && ext === '.doc') {
     return {
