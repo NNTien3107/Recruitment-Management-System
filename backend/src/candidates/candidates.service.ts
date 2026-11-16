@@ -7,10 +7,6 @@ import { UpdateCandidateProfileDto } from './dto/update-candidate-profile.dto';
 export class CandidatesService {
   constructor(private readonly prisma: PrismaService) {}
 
-  /**
-   * Lấy thông tin hồ sơ của ứng viên.
-   * Nếu ứng viên chưa từng tạo hồ sơ, trả về thông tin người dùng kèm hồ sơ rỗng.
-   */
   async getProfile(userId: string) {
     const user = await this.prisma.user.findUnique({
       where: { id: userId },
@@ -19,7 +15,6 @@ export class CandidatesService {
         email: true,
         fullName: true,
         role: true,
-        createdAt: true,
         candidateProfile: true,
       },
     });
@@ -47,70 +42,69 @@ export class CandidatesService {
     };
   }
 
-  /**
-   * Cập nhật hồ sơ ứng viên (UC07).
-   * Tạo mới nếu chưa có hoặc cập nhật nếu đã tồn tại (upsert).
-   */
   async updateProfile(userId: string, dto: UpdateCandidateProfileDto) {
-    // Đảm bảo user tồn tại
-    const user = await this.prisma.user.findUnique({ where: { id: userId } });
-    if (!user) {
-      throw new NotFoundException('Không tìm thấy thông tin người dùng');
-    }
-
-    // 1. Nếu có cập nhật họ tên, cập nhật bảng User
-    if (dto.fullName && dto.fullName !== user.fullName) {
-      await this.prisma.user.update({
+    return this.prisma.$transaction(async (tx) => {
+      const user = await tx.user.findUnique({
         where: { id: userId },
-        data: { fullName: dto.fullName },
       });
-    }
 
-    // 2. Chuẩn bị dữ liệu cập nhật cho CandidateProfile
-    const profileData: Prisma.CandidateProfileUpdateInput = {
-      ...(dto.phone !== undefined && { phone: dto.phone }),
-      ...(dto.address !== undefined && { address: dto.address }),
-      ...(dto.title !== undefined && { title: dto.title }),
-      ...(dto.bio !== undefined && { bio: dto.bio }),
-      ...(dto.skills !== undefined && { skills: dto.skills }),
-      ...(dto.experience !== undefined && {
-        experience: dto.experience as unknown as Prisma.InputJsonValue,
-      }),
-      ...(dto.education !== undefined && {
-        education: dto.education as unknown as Prisma.InputJsonValue,
-      }),
-      ...(dto.avatarUrl !== undefined && { avatarUrl: dto.avatarUrl }),
-    };
+      if (!user) {
+        throw new NotFoundException('Không tìm thấy thông tin người dùng');
+      }
 
-    const profileCreateData: Prisma.CandidateProfileCreateInput = {
-      user: { connect: { id: userId } },
-      phone: dto.phone ?? null,
-      address: dto.address ?? null,
-      title: dto.title ?? null,
-      bio: dto.bio ?? null,
-      skills: dto.skills ?? [],
-      experience: (dto.experience as unknown as Prisma.InputJsonValue) ?? [],
-      education: (dto.education as unknown as Prisma.InputJsonValue) ?? [],
-      avatarUrl: dto.avatarUrl ?? null,
-    };
+      if (dto.fullName !== undefined && dto.fullName !== user.fullName) {
+        await tx.user.update({
+          where: { id: userId },
+          data: { fullName: dto.fullName },
+        });
+      }
 
-    // 3. Upsert CandidateProfile
-    const updatedProfile = await this.prisma.candidateProfile.upsert({
-      where: { userId },
-      update: profileData,
-      create: profileCreateData,
+      const profileData: Prisma.CandidateProfileUpdateInput = {
+        ...(dto.phone !== undefined && { phone: dto.phone }),
+        ...(dto.address !== undefined && { address: dto.address }),
+        ...(dto.title !== undefined && { title: dto.title }),
+        ...(dto.bio !== undefined && { bio: dto.bio }),
+        ...(dto.skills !== undefined && { skills: dto.skills }),
+        ...(dto.experience !== undefined && {
+          experience: dto.experience as unknown as Prisma.InputJsonValue,
+        }),
+        ...(dto.education !== undefined && {
+          education: dto.education as unknown as Prisma.InputJsonValue,
+        }),
+        ...(dto.avatarUrl !== undefined && { avatarUrl: dto.avatarUrl }),
+      };
+
+      const profileCreateData: Prisma.CandidateProfileCreateInput = {
+        user: { connect: { id: userId } },
+        phone: dto.phone ?? null,
+        address: dto.address ?? null,
+        title: dto.title ?? null,
+        bio: dto.bio ?? null,
+        skills: dto.skills ?? [],
+        experience:
+          (dto.experience as unknown as Prisma.InputJsonValue) ?? [],
+        education:
+          (dto.education as unknown as Prisma.InputJsonValue) ?? [],
+        avatarUrl: dto.avatarUrl ?? null,
+      };
+
+      const updatedProfile = await tx.candidateProfile.upsert({
+        where: { userId },
+        update: profileData,
+        create: profileCreateData,
+      });
+
+      const refreshedUser = await tx.user.findUnique({
+        where: { id: userId },
+        select: { fullName: true, email: true },
+      });
+
+      return {
+        userId,
+        email: refreshedUser?.email,
+        fullName: refreshedUser?.fullName,
+        profile: updatedProfile,
+      };
     });
-
-    const refreshedUser = await this.prisma.user.findUnique({
-      where: { id: userId },
-      select: { fullName: true, email: true },
-    });
-
-    return {
-      userId,
-      email: refreshedUser?.email,
-      fullName: refreshedUser?.fullName,
-      profile: updatedProfile,
-    };
   }
 }
