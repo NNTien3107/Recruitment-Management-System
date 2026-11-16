@@ -7,6 +7,8 @@ export function Navbar() {
     pathname === '/' || pathname.startsWith('/jobs') || pathname.startsWith('/companies');
   const isRecruiterCompanyActive = pathname.startsWith('/recruiter/company');
   const isRecruiterJobsActive = pathname.startsWith('/recruiter/jobs');
+  const isAdminUsersActive = pathname.startsWith('/admin/users');
+  const isAdminJobsActive = pathname.startsWith('/admin/jobs');
 
   return (
     <header className="rms-navbar">
@@ -32,11 +34,20 @@ export function Navbar() {
           >
             Quản lý tin đăng
           </AppLink>
+          <AppLink to="/admin/jobs" className={`rms-nav-link ${isAdminJobsActive ? 'active' : ''}`}>
+            Duyệt tin (Admin)
+          </AppLink>
+          <AppLink
+            to="/admin/users"
+            className={`rms-nav-link ${isAdminUsersActive ? 'active' : ''}`}
+          >
+            Người dùng (Admin)
+          </AppLink>
         </nav>
 
         <div className="rms-nav-actions">
           {/* TODO: Tích hợp trạng thái người dùng từ AuthContext của Tiến */}
-          <span className="rms-env-pill">UC05 · UC06 · UC13 · UC14 · UC15</span>
+          <span className="rms-env-pill">Full Module (Nam)</span>
         </div>
       </div>
     </header>

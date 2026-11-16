@@ -1036,6 +1036,173 @@
   gap: 10px;
 }
 
+.rms-modal-lg {
+  max-width: 760px;
+  max-height: 85vh;
+  display: flex;
+  flex-direction: column;
+}
+
+.rms-inspect-body {
+  overflow-y: auto;
+  padding-right: 6px;
+  margin-bottom: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.rms-inspect-section h4 {
+  margin: 0 0 6px;
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--rms-text);
+}
+
+/* Admin Management (UC21, UC22, UC23) */
+.rms-admin-nav-tabs {
+  display: inline-flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  background: var(--rms-surface);
+  border: 1px solid var(--rms-border);
+  padding: 6px;
+  border-radius: 10px;
+  margin-bottom: 20px;
+}
+
+.rms-admin-tab {
+  padding: 8px 16px;
+  border-radius: 7px;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--rms-text-secondary);
+  text-decoration: none !important;
+  transition: all 0.15s ease;
+}
+
+.rms-admin-tab:hover,
+.rms-admin-tab.active {
+  background: var(--rms-primary);
+  color: #fff;
+}
+
+.rms-status-tabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 16px;
+}
+
+.rms-status-tab {
+  padding: 8px 16px;
+  border-radius: 8px;
+  border: 1px solid var(--rms-border);
+  background: var(--rms-surface);
+  color: var(--rms-text-secondary);
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.rms-status-tab:hover,
+.rms-status-tab.active {
+  border-color: var(--rms-primary);
+  background: var(--rms-primary-soft);
+  color: var(--rms-primary);
+}
+
+.rms-btn-success {
+  background: var(--rms-success);
+  color: #fff;
+}
+
+.rms-btn-success:hover:not(:disabled) {
+  background: #047857;
+}
+
+/* Admin Users Table */
+.rms-table-card {
+  background: var(--rms-surface);
+  border: 1px solid var(--rms-border);
+  border-radius: var(--rms-radius);
+  overflow-x: auto;
+  box-shadow: var(--rms-shadow-sm);
+}
+
+.rms-table {
+  width: 100%;
+  border-collapse: collapse;
+  text-align: left;
+  font-size: 14px;
+}
+
+.rms-table th {
+  background: #f8fafc;
+  color: var(--rms-text-secondary);
+  font-weight: 600;
+  padding: 14px 16px;
+  border-bottom: 1px solid var(--rms-border);
+  white-space: nowrap;
+}
+
+.rms-table td {
+  padding: 14px 16px;
+  border-bottom: 1px solid var(--rms-border);
+  vertical-align: middle;
+}
+
+.rms-table tbody tr:last-child td {
+  border-bottom: none;
+}
+
+.rms-table tbody tr:hover {
+  background: #f8fafc;
+}
+
+.rms-row-locked {
+  background: #fffafa;
+}
+
+.rms-user-cell {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.rms-user-avatar {
+  width: 38px;
+  height: 38px;
+  border-radius: 999px;
+  background: var(--rms-primary-soft);
+  color: var(--rms-primary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  flex-shrink: 0;
+}
+
+.rms-user-name {
+  font-weight: 600;
+  color: var(--rms-text);
+}
+
+.rms-user-email {
+  font-size: 13px;
+  color: var(--rms-text-muted);
+}
+
+.rms-company-table-link {
+  font-weight: 500;
+  color: var(--rms-primary);
+}
+
+.rms-text-right {
+  text-align: right;
+}
+
 .rms-muted {
   color: var(--rms-text-muted);
   font-size: 14px;

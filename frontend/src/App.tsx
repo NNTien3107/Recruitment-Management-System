@@ -1,5 +1,7 @@
 import './App.css';
 import { Navbar } from './components/Navbar';
+import { AdminJobsPage } from './pages/AdminJobsPage';
+import { AdminUsersPage } from './pages/AdminUsersPage';
 import { CompanyDetailPage } from './pages/CompanyDetailPage';
 import { JobDetailPage } from './pages/JobDetailPage';
 import { JobsSearchPage } from './pages/JobsSearchPage';
@@ -11,12 +13,22 @@ function App() {
   const pathname = usePathname();
 
   const renderPage = () => {
+    // TODO: Bọc ProtectedRoute (@Roles RECRUITER) sau khi ghép Auth của Tiến
     if (pathname === '/recruiter/company') {
       return <RecruiterCompanyPage />;
     }
 
     if (pathname === '/recruiter/jobs') {
       return <RecruiterJobsPage />;
+    }
+
+    // TODO: Bọc ProtectedRoute (@Roles ADMIN) sau khi ghép Auth của Tiến
+    if (pathname === '/admin/users') {
+      return <AdminUsersPage />;
+    }
+
+    if (pathname === '/admin/jobs') {
+      return <AdminJobsPage />;
     }
 
     const jobMatch = /^\/jobs\/([^/]+)$/.exec(pathname);
