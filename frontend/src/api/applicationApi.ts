@@ -1,6 +1,6 @@
 import { apiClient } from './apiClient';
-import { CandidateProfile } from './candidateApi';
-import { CvItem } from './cvApi';
+import type { CandidateProfile } from './candidateApi';
+import type { CvItem } from './cvApi';
 
 export type ApplicationStatus =
   | 'APPLIED'

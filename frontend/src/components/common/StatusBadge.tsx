@@ -1,5 +1,5 @@
 import React from 'react';
-import { ApplicationStatus } from '../../api/applicationApi';
+import type { ApplicationStatus } from '../../api/applicationApi';
 
 interface StatusBadgeProps {
   status: ApplicationStatus;

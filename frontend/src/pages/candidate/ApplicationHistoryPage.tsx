@@ -1,13 +1,16 @@
 import React, { useEffect, useState } from 'react';
-import {
-  applicationApi,
+
+import { applicationApi } from '../../api/applicationApi';
+import type {
   ApplicationItem,
   ApplicationStatus,
 } from '../../api/applicationApi';
-import { cvApi, CvItem } from '../../api/cvApi';
+
+import { cvApi } from '../../api/cvApi';
+import type { CvItem } from '../../api/cvApi';
+
 import { Modal } from '../../components/common/Modal';
 import { StatusBadge } from '../../components/common/StatusBadge';
-
 export const ApplicationHistoryPage: React.FC = () => {
   const [applications, setApplications] = useState<ApplicationItem[]>([]);
   const [loading, setLoading] = useState(true);

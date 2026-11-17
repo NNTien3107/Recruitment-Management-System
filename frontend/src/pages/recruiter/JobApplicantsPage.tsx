@@ -1,12 +1,11 @@
 import React, { useEffect, useState } from 'react';
-import {
-  applicationApi,
+import { applicationApi } from '../../api/applicationApi';
+import type {
   ApplicationItem,
   ApplicationStatus,
 } from '../../api/applicationApi';
 import { Modal } from '../../components/common/Modal';
 import { StatusBadge } from '../../components/common/StatusBadge';
-
 // Các trạng thái tiếp theo hợp lệ theo state machine
 const ALLOWED_TRANSITIONS: Record<ApplicationStatus, ApplicationStatus[]> = {
   APPLIED: ['REVIEWING', 'REJECTED', 'WITHDRAWN'],

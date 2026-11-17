@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
-import { cvApi, CvItem } from '../../api/cvApi';
-
+import { cvApi } from '../../api/cvApi';
+import type { CvItem } from '../../api/cvApi';
 export const CvsPage: React.FC = () => {
   const [cvs, setCvs] = useState<CvItem[]>([]);
   const [loading, setLoading] = useState(true);

@@ -1,11 +1,10 @@
 import React, { useEffect, useState } from 'react';
-import {
-  candidateApi,
+import { candidateApi } from '../../api/candidateApi';
+import type {
   CandidateProfileResponse,
   EducationItem,
   ExperienceItem,
 } from '../../api/candidateApi';
-
 export const ProfilePage: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
