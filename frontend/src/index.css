@@ -17,6 +17,9 @@
   --rms-radius: 12px;
   --rms-shadow-sm: 0 1px 3px rgba(15, 23, 42, 0.06);
   --rms-shadow-md: 0 8px 24px rgba(15, 23, 42, 0.08);
+
+  --code-bg: #f4f3ec;
+
   font-family:
     'Inter',
     system-ui,
@@ -27,7 +30,10 @@
   color: var(--rms-text);
   background-color: var(--rms-bg);
   line-height: 1.5;
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
 *,
@@ -38,6 +44,8 @@
 
 body {
   margin: 0;
+  min-width: 320px;
+  min-height: 100vh;
   background-color: var(--rms-bg);
   color: var(--rms-text);
 }
@@ -55,4 +63,34 @@ a {
 
 a:hover {
   text-decoration: underline;
+}
+
+button,
+input,
+textarea,
+select {
+  font: inherit;
+}
+
+button {
+  cursor: pointer;
+}
+
+code {
+  font-size: 15px;
+  line-height: 1.35;
+  padding: 4px 8px;
+  background: var(--code-bg);
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: scale(0.96);
+  }
+
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
 }

@@ -5,7 +5,8 @@ coverage/
 .env
 .env.*
 !.env.example
-uploads/
+uploa HEAD
+backend/upl678494a5
 *.log
 .DS_Store
 .idea/

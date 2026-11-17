@@ -1,11 +1,14 @@
 import { ConfigService } from '@nestjs/config';
 import { NestFactory } from '@nestjs/core';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
-import { AppModule } from './app.module';
 import cookieParser from 'cookie-parser';
+import { AppModule } from './app.module';
+
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
+
   app.use(cookieParser());
+
   // Mọi API nằm dưới /api, riêng /health giữ nguyên
   app.setGlobalPrefix('api', { exclude: ['health'] });
 
@@ -15,12 +18,17 @@ async function bootstrap() {
     .setVersion('1.0')
     .addBearerAuth()
     .build();
+
   const document = SwaggerModule.createDocument(app, swaggerConfig);
+
   SwaggerModule.setup('api/docs', app, document, {
     swaggerOptions: { persistAuthorization: true },
   });
 
-  const port = app.get(ConfigService).get<number>('PORT', 3000);
+  const configService = app.get(ConfigService);
+  const port = Number(configService.get('PORT') ?? 3000);
+
   await app.listen(port);
 }
+
 void bootstrap();

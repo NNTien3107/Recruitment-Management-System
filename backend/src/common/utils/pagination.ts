@@ -16,8 +16,16 @@ export function buildPaginated<T>(
   page: number,
   pageSize: number,
 ): Paginated<T> {
+  const safePageSize = Math.max(1, pageSize);
+  const safeTotal = Math.max(0, total);
+
   return {
     items,
-    meta: { page, pageSize, total, totalPages: Math.ceil(total / pageSize) },
+    meta: {
+      page,
+      pageSize: safePageSize,
+      total: safeTotal,
+      totalPages: Math.ceil(safeTotal / safePageSize),
+    },
   };
 }
