@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import { applicationApi } from '../../api/applicationApi';
 import type {
   ApplicationItem,
@@ -46,14 +46,9 @@ export const JobApplicantsPage: React.FC = () => {
   const [statusNote, setStatusNote] = useState('');
   const [updatingStatus, setUpdatingStatus] = useState(false);
 
-  useEffect(() => {
-    if (jobId.trim()) {
-      loadApplicants();
-    }
-  }, [statusFilter]);
-
-  const loadApplicants = async () => {
+  const loadApplicants = useCallback(async () => {
     if (!jobId.trim()) return;
+
     try {
       setLoading(true);
       setMessage(null);
@@ -69,7 +64,13 @@ export const JobApplicantsPage: React.FC = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [jobId, statusFilter, keyword]);
+
+  useEffect(() => {
+    if (jobId.trim()) {
+      void Promise.resolve().then(loadApplicants);
+    }
+  }, [jobId, loadApplicants]);
 
   const handleOpenStatusModal = (app: ApplicationItem) => {
     setStatusModalApp(app);

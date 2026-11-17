@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import { candidateApi } from '../../api/candidateApi';
 import type {
   CandidateProfileResponse,
@@ -24,11 +24,7 @@ export const ProfilePage: React.FC = () => {
   const [experience, setExperience] = useState<ExperienceItem[]>([]);
   const [education, setEducation] = useState<EducationItem[]>([]);
 
-  useEffect(() => {
-    loadProfile();
-  }, []);
-
-  const loadProfile = async () => {
+  const loadProfile = useCallback(async () => {
     try {
       setLoading(true);
       const data: CandidateProfileResponse = await candidateApi.getProfile();
@@ -47,7 +43,11 @@ export const ProfilePage: React.FC = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
+
+  useEffect(() => {
+    void Promise.resolve().then(loadProfile);
+  }, [loadProfile]);
 
   const handleAddSkill = (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.key === 'Enter' && skillsInput.trim()) {

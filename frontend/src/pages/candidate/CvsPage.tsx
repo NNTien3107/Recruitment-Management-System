@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import { cvApi } from '../../api/cvApi';
 import type { CvItem } from '../../api/cvApi';
 export const CvsPage: React.FC = () => {
@@ -14,11 +14,7 @@ export const CvsPage: React.FC = () => {
   const [cvName, setCvName] = useState('');
   const [isDefault, setIsDefault] = useState(false);
 
-  useEffect(() => {
-    loadCvs();
-  }, []);
-
-  const loadCvs = async () => {
+  const loadCvs = useCallback(async () => {
     try {
       setLoading(true);
       const data = await cvApi.getCvs();
@@ -29,7 +25,11 @@ export const CvsPage: React.FC = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
+
+  useEffect(() => {
+    void Promise.resolve().then(loadCvs);
+  }, [loadCvs]);
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {

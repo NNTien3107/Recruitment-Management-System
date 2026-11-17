@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 
 import { applicationApi } from '../../api/applicationApi';
 import type {
@@ -29,11 +29,7 @@ export const ApplicationHistoryPage: React.FC = () => {
     null,
   );
 
-  useEffect(() => {
-    loadApplications();
-  }, [statusFilter]);
-
-  const loadApplications = async () => {
+  const loadApplications = useCallback(async () => {
     try {
       setLoading(true);
       const res = await applicationApi.getMyApplications({
@@ -47,7 +43,12 @@ export const ApplicationHistoryPage: React.FC = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [statusFilter, keyword]);
+
+  useEffect(() => {
+    void Promise.resolve().then(loadApplications);
+  }, [loadApplications]);
+
 
   const openApplyModal = async () => {
     try {
