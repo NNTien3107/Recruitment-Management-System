@@ -19,7 +19,8 @@
 
 ```bash
 git clone <repo-url> && cd <repo>
-cp backend/.env.example backend/.env      # chỉnh giá trị nếu cần
+cp .env.example .env                      # Docker Postgres
+cp backend/.env.example backend/.env      # Backend (DATABASE_URL, PORT,...)
 docker compose up -d                      # chạy PostgreSQL (+ app)
 cd backend
 npm install

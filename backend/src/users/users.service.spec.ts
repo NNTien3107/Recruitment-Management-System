@@ -39,7 +39,8 @@ describe('UsersService', () => {
 
       await service.create(dto);
 
-      const data = prisma.user.create.mock.calls[0][0].data;
+      const firstCall = prisma.user.create.mock.calls[0] as [{ data: Record<string, unknown> }];
+      const data = firstCall[0].data;
       expect(data.passwordHash).toBeDefined();
       expect(data.passwordHash).not.toBe(dto.password);
       expect(data.password).toBeUndefined();
@@ -63,7 +64,8 @@ describe('UsersService', () => {
 
       expect(result.items).toHaveLength(1);
       expect(result.meta).toEqual({ page: 2, pageSize: 20, total: 45, totalPages: 3 });
-      expect(prisma.user.findMany.mock.calls[0][0]).toMatchObject({ skip: 20, take: 20 });
+      const firstFindManyCall = prisma.user.findMany.mock.calls[0] as [Record<string, unknown>];
+      expect(firstFindManyCall[0]).toMatchObject({ skip: 20, take: 20 });
     });
   });
 });

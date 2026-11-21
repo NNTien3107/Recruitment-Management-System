@@ -83,7 +83,8 @@ git clone <repo-url>
 cd <repo>
 
 # 2. Tạo file môi trường
-cp backend/.env.example backend/.env
+cp .env.example .env                       # biến môi trường cho Docker (Postgres)
+cp backend/.env.example backend/.env       # biến môi trường cho Backend
 cp frontend/.env.example frontend/.env     # nếu có
 
 # 3. Chạy PostgreSQL (và các service khác) bằng Docker

@@ -9,6 +9,11 @@ import { validateEnv } from './config/env.validation';
 import { HealthController } from './health/health.controller';
 import { PrismaModule } from './prisma/prisma.module';
 import { UsersModule } from './users/users.module';
+import { CompaniesModule } from './companies/companies.module';
+import { AuthModule } from './auth/auth.module';
+import { JobsModule } from './jobs/jobs.module';
+import { AdminModule } from './admin/admin.module';
+
 @Module({
   imports: [
     ConfigModule.forRoot({
@@ -17,6 +22,10 @@ import { UsersModule } from './users/users.module';
     }),
     PrismaModule,
     UsersModule,
+    CompaniesModule,
+    AuthModule,
+    JobsModule,
+    AdminModule,
   ],
   controllers: [AppController, HealthController],
   providers: [
