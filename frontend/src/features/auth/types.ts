@@ -6,3 +6,4 @@ export interface AuthUser {
   fullName: string;
   role: Role;
 }
+export type RegistrableRole = Exclude<Role, 'ADMIN'>;
