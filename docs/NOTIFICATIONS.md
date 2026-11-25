@@ -33,7 +33,7 @@ Khi tiến trình dừng sau lúc SMTP nhận email và trước lúc PostgreSQL
 
 ## Kiểm tra với hồ sơ ứng tuyển
 
-Nhánh tích hợp cần các bảng Candidate, CV và Application trước khi áp dụng migration phỏng vấn. Sau khi cấu hình SMTP và đăng nhập bằng tài khoản Recruiter qua Swagger, chọn một hồ sơ thuộc tin của tài khoản đó.
+Nhánh tích hợp cần các bảng Candidate, CV và Application trước khi áp dụng migration phỏng vấn. Sau khi cấu hình SMTP và đăng nhập bằng tài khoản Recruiter qua Swagger, gọi `GET /api/recruiter/interviews/jobs` để chọn tin rồi gọi `GET /api/recruiter/jobs/{jobId}/applications` để chọn hồ sơ thuộc tin đó. Hai API lấy danh tính từ access token.
 
 1. Gọi `PATCH /api/recruiter/applications/{applicationId}/status` để chuyển từ `APPLIED` sang `REVIEWING`. Hệ thống lưu lịch sử và thông báo cùng lúc.
 2. Gọi `POST /api/recruiter/applications/{applicationId}/interviews` với `scheduledAt` ở tương lai, có múi giờ, và `location` là địa điểm hoặc liên kết. Việc đặt lịch giữ nguyên trạng thái hồ sơ.
