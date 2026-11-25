@@ -19,6 +19,7 @@ import { CompaniesModule } from './companies/companies.module';
 import { AuthModule } from './auth/auth.module';
 import { JobsModule } from './jobs/jobs.module';
 import { AdminModule } from './admin/admin.module';
+import { InterviewsModule } from './interviews/interviews.module';
 
 @Module({
   imports: [
@@ -33,6 +34,7 @@ import { AdminModule } from './admin/admin.module';
     CandidatesModule,
     CvsModule,
     ApplicationsModule,
+    InterviewsModule,
     CompaniesModule,
     AuthModule,
     JobsModule,

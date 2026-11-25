@@ -10,7 +10,9 @@ import {
   UnauthorizedException,
 } from '@nestjs/common';
 import { ApiHeader, ApiOperation, ApiTags } from '@nestjs/swagger';
+import { Role } from '@prisma/client';
 import type { Response } from 'express';
+import { Auth } from '../auth/decorators/auth.decorator';
 import { CurrentUser } from '../common/decorators/current-user.decorator';
 import { ApplicationsService } from './applications.service';
 import { QueryApplicationsDto } from './dto/query-applications.dto';
@@ -21,16 +23,10 @@ import { UpdateApplicationStatusDto } from './dto/update-application-status.dto'
 export class RecruiterApplicationsController {
   constructor(private readonly applicationsService: ApplicationsService) {}
 
-  // TODO: @UseGuards(JwtAuthGuard, RolesGuard)
-  // TODO: @Roles(Role.RECRUITER)
+  @Auth(Role.RECRUITER)
   @Get('jobs/:jobId/applications')
   @ApiOperation({
     summary: 'Danh sách ứng viên nộp đơn theo từng tin tuyển dụng (UC16)',
-  })
-  @ApiHeader({
-    name: 'x-user-id',
-    description: 'ID nhà tuyển dụng (Recruiter ID)',
-    required: false,
   })
   async getJobApplications(
     @Param('jobId', ParseUUIDPipe) jobId: string,
@@ -96,16 +92,10 @@ export class RecruiterApplicationsController {
     storedFile.stream.pipe(res);
   }
 
-  // TODO: @UseGuards(JwtAuthGuard, RolesGuard)
-  // TODO: @Roles(Role.RECRUITER)
+  @Auth(Role.RECRUITER)
   @Patch('applications/:id/status')
   @ApiOperation({
     summary: 'Cập nhật trạng thái đơn ứng tuyển (qua canTransition) (UC18)',
-  })
-  @ApiHeader({
-    name: 'x-user-id',
-    description: 'ID nhà tuyển dụng',
-    required: false,
   })
   async updateStatus(
     @Param('id', ParseUUIDPipe) id: string,

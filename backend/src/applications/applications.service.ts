@@ -325,13 +325,20 @@ export class ApplicationsService {
 
     // Cập nhật trạng thái và ghi log lịch sử trong cùng Transaction
     const updatedApplication = await this.prisma.$transaction(async (tx) => {
-      const app = await tx.application.update({
-        where: { id: applicationId },
-        data: { status: newStatus },
-        include: {
-          job: { select: { title: true } },
-        },
-      });
+      const app = await tx.application
+        .update({
+          where: { id: applicationId, status: currentStatus },
+          data: { status: newStatus },
+          include: {
+            job: { select: { title: true } },
+          },
+        })
+        .catch((error: unknown) => {
+          if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === 'P2025') {
+            throw new ConflictException('Trạng thái hồ sơ đã thay đổi. Vui lòng tải lại.');
+          }
+          throw error;
+        });
 
       await tx.applicationStatusHistory.create({
         data: {
@@ -343,16 +350,13 @@ export class ApplicationsService {
         },
       });
 
+      await this.notificationService.notify(
+        application.candidateId,
+        'APPLICATION_STATUS_CHANGED',
+        { jobTitle: app.job.title, previousStatus: currentStatus, status: newStatus },
+        tx,
+      );
       return app;
-    });
-
-    // Bắn sự kiện thông báo (Thành viên Thành sẽ nhận sự kiện này để gửi email)
-    await this.notificationService.notify(application.candidateId, 'APPLICATION_STATUS_CHANGED', {
-      applicationId,
-      jobTitle: updatedApplication.job.title,
-      fromStatus: currentStatus,
-      toStatus: newStatus,
-      note: dto.note,
     });
 
     return updatedApplication;

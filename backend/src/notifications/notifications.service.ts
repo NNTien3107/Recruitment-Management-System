@@ -1,24 +1,30 @@
-import { Injectable, Logger } from '@nestjs/common';
-
-export interface NotificationPayload {
-  [key: string]: unknown;
-}
+import { Injectable } from '@nestjs/common';
+import { NotificationType, Prisma } from '@prisma/client';
+import { PrismaService } from '../prisma/prisma.service';
+import { NotificationEvent, NotificationEvents } from './notification-events';
 
 @Injectable()
 export class NotificationService {
-  private readonly logger = new Logger(NotificationService.name);
+  constructor(private readonly prisma: PrismaService) {}
 
-  /**
-   * Gửi thông báo đến người dùng (Thành viên Thành sẽ kết nối với Nodemailer/Mailtrap tại đây).
-   *
-   * @param userId ID người nhận thông báo
-   * @param type Loại sự kiện thông báo (ví dụ: 'APPLICATION_STATUS_CHANGED')
-   * @param payload Dữ liệu chi tiết gửi kèm
-   */
-  notify(userId: string, type: string, payload: NotificationPayload): Promise<void> {
-    this.logger.log(
-      `[Thông báo] Gửi đến User ${userId} | Loại: ${type} | Nội dung: ${JSON.stringify(payload)}`,
-    );
-    return Promise.resolve();
+  async notify(...[userId, type, payload, tx]: NotificationArguments): Promise<void> {
+    await (tx ?? this.prisma).notification.create({
+      data: { userId, type, payload: payload satisfies Prisma.InputJsonObject },
+      select: { id: true },
+    });
   }
+}
+
+type NotificationArguments = {
+  [Type in keyof NotificationEvents]: [
+    userId: string,
+    type: Type & NotificationType,
+    payload: NotificationEvents[Type],
+    tx?: Prisma.TransactionClient,
+  ];
+}[keyof NotificationEvents];
+
+// Rows are written only through notify, which validates the type/payload pairing at compile time.
+export function readNotificationEvent(type: NotificationType, payload: Prisma.JsonValue) {
+  return { type, payload } as NotificationEvent;
 }
