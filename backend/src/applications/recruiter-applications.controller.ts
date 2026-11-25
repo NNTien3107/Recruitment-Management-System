@@ -10,7 +10,9 @@ import {
   UnauthorizedException,
 } from '@nestjs/common';
 import { ApiHeader, ApiOperation, ApiTags } from '@nestjs/swagger';
+import { Role } from '@prisma/client';
 import type { Response } from 'express';
+import { Auth } from '../auth/decorators/auth.decorator';
 import { CurrentUser } from '../common/decorators/current-user.decorator';
 import { ApplicationsService } from './applications.service';
 import { QueryApplicationsDto } from './dto/query-applications.dto';
@@ -96,16 +98,10 @@ export class RecruiterApplicationsController {
     storedFile.stream.pipe(res);
   }
 
-  // TODO: @UseGuards(JwtAuthGuard, RolesGuard)
-  // TODO: @Roles(Role.RECRUITER)
+  @Auth(Role.RECRUITER)
   @Patch('applications/:id/status')
   @ApiOperation({
     summary: 'Cập nhật trạng thái đơn ứng tuyển (qua canTransition) (UC18)',
-  })
-  @ApiHeader({
-    name: 'x-user-id',
-    description: 'ID nhà tuyển dụng',
-    required: false,
   })
   async updateStatus(
     @Param('id', ParseUUIDPipe) id: string,

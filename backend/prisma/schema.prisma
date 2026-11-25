@@ -65,6 +65,7 @@ model User {
   cvs               Cv[]
   applications      Application[] @relation("CandidateApplications")
   statusChanges     ApplicationStatusHistory[]
+  notifications Notification[]
 
   @@map("users")
 }
@@ -173,9 +174,25 @@ model Application {
   updatedAt   DateTime          @updatedAt
 
   statusHistory ApplicationStatusHistory[]
+  interviews    Interview[]
 
   @@unique([candidateId, jobId])
   @@map("applications")
+}
+
+model Interview {
+  id            String    @id @default(uuid())
+  applicationId String
+  scheduledAt   DateTime  @db.Timestamptz(3)
+  location      String
+  cancelledAt   DateTime? @db.Timestamptz(3)
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  application Application @relation(fields: [applicationId], references: [id], onDelete: Cascade)
+
+  @@index([applicationId, scheduledAt])
+  @@map("interviews")
 }
 
 model ApplicationStatusHistory {
@@ -206,4 +223,28 @@ model RefreshToken {
   @@index([userId])
   @@index([familyId])
   @@map("refresh_tokens")
+}
+
+enum NotificationType {
+  APPLICATION_STATUS_CHANGED
+  INTERVIEW_SCHEDULED
+  INTERVIEW_RESCHEDULED
+  INTERVIEW_CANCELLED
+}
+
+model Notification {
+  id                 String           @id @default(uuid())
+  userId             String
+  type               NotificationType
+  payload            Json
+  createdAt          DateTime         @default(now())
+  emailAttempts      Int              @default(0)
+  emailNextAttemptAt DateTime?        @default(now())
+  emailSentAt        DateTime?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, createdAt])
+  @@index([emailNextAttemptAt])
+  @@map("notifications")
 }

@@ -194,7 +194,7 @@ describe('ApplicationsService', () => {
       });
 
       expect(mockPrisma.application.update).toHaveBeenCalledWith({
-        where: { id: applicationId },
+        where: { id: applicationId, status: 'APPLIED' },
         data: { status: 'REVIEWING' },
         include: { job: { select: { title: true } } },
       });
@@ -211,9 +211,10 @@ describe('ApplicationsService', () => {
         'cand-1',
         'APPLICATION_STATUS_CHANGED',
         expect.objectContaining({
-          fromStatus: 'APPLIED',
-          toStatus: 'REVIEWING',
+          previousStatus: 'APPLIED',
+          status: 'REVIEWING',
         }),
+        mockPrisma,
       );
 
       expect(result.status).toBe('REVIEWING');
