@@ -2,6 +2,7 @@ import { createBrowserRouter } from 'react-router-dom';
 import { GuestOnlyRoute } from '../features/auth/GuestOnlyRoute';
 import { LoginPage } from '../features/auth/LoginPage';
 import { ProtectedRoute } from '../features/auth/ProtectedRoute';
+import { RecruiterInterviewsPage } from '../features/interviews/RecruiterInterviewsPage';
 import { MainLayout } from '../layouts/MainLayout';
 import { ForbiddenPage } from '../pages/ForbiddenPage';
 import { HomePage } from '../pages/HomePage';
@@ -36,6 +37,7 @@ export const router = createBrowserRouter([
         element: <ProtectedRoute roles={['RECRUITER']} />,
         children: [
           { path: 'recruiter', element: <PlaceholderPage title="Khu vực nhà tuyển dụng" /> },
+          { path: 'recruiter/interviews', element: <RecruiterInterviewsPage /> },
         ],
       },
       {
