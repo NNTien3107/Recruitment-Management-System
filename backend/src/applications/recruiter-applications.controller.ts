@@ -23,16 +23,10 @@ import { UpdateApplicationStatusDto } from './dto/update-application-status.dto'
 export class RecruiterApplicationsController {
   constructor(private readonly applicationsService: ApplicationsService) {}
 
-  // TODO: @UseGuards(JwtAuthGuard, RolesGuard)
-  // TODO: @Roles(Role.RECRUITER)
+  @Auth(Role.RECRUITER)
   @Get('jobs/:jobId/applications')
   @ApiOperation({
     summary: 'Danh sách ứng viên nộp đơn theo từng tin tuyển dụng (UC16)',
-  })
-  @ApiHeader({
-    name: 'x-user-id',
-    description: 'ID nhà tuyển dụng (Recruiter ID)',
-    required: false,
   })
   async getJobApplications(
     @Param('jobId', ParseUUIDPipe) jobId: string,
