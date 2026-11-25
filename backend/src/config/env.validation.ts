@@ -8,6 +8,20 @@ const envSchema = z
     JWT_ACCESS_SECRET: z.string().min(32),
     JWT_ACCESS_EXPIRES_IN_SECONDS: z.coerce.number().default(900), // 15 phút
     REFRESH_TOKEN_TTL_DAYS: z.coerce.number().default(7),
+    CORS_ORIGINS: z
+      .string()
+      .default('http://localhost:5173')
+      .transform((value) =>
+        value
+          .split(',')
+          .map((origin) => origin.trim())
+          .filter(Boolean),
+      ),
+    // Chỉ bật khi backend đứng sau reverse proxy (Nginx, Cloudflare...)
+    TRUST_PROXY: z
+      .enum(['true', 'false'])
+      .default('false')
+      .transform((value) => value === 'true'),
     SMTP_HOST: z.string().min(1).optional(),
     SMTP_PORT: z.coerce.number().int().min(1).max(65535).default(587),
     SMTP_USER: z.string().min(1).optional(),

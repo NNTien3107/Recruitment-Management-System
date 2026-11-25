@@ -29,6 +29,7 @@ services:
       JWT_ACCESS_EXPIRES_IN_SECONDS: 900
       TSC_WATCHFILE: PriorityPollingInterval
       CHOKIDAR_USEPOLLING: "true"
+      CORS_ORIGINS: ${CORS_ORIGINS:-http://localhost:5173}
     ports:
       - "3000:3000"
     depends_on:
@@ -43,7 +44,7 @@ services:
     container_name: rms-frontend
     restart: unless-stopped
     environment:
-      VITE_API_URL: http://localhost:3000
+      VITE_API_URL: http://localhost:3000/api
     ports:
       - "5173:5173"
     depends_on:

@@ -6,6 +6,12 @@ import { AuthService } from './auth.service';
 import { LoginDto } from './dto/login.dto';
 import { RegisterDto } from './dto/register.dto';
 import { RefreshTokensService } from './refresh-tokens.service';
+import { Get } from '@nestjs/common';
+import { UsersService } from '../users/users.service';
+import { Auth } from './decorators/auth.decorator';
+import { CurrentUser } from './decorators/current-user.decorator';
+import type { AuthUser } from './types/auth-user';
+import { Throttle } from '@nestjs/throttler';
 
 const REFRESH_COOKIE = 'refresh_token';
 const COOKIE_PATH = '/api/auth';
@@ -17,6 +23,7 @@ export class AuthController {
     private readonly authService: AuthService,
     private readonly refreshTokens: RefreshTokensService,
     private readonly config: ConfigService,
+    private readonly usersService: UsersService,
   ) {}
 
   @Post('register')
@@ -27,6 +34,7 @@ export class AuthController {
 
   @Post('login')
   @HttpCode(HttpStatus.OK)
+  @Throttle({ default: { limit: 5, ttl: 60_000 } }) // BR: 5 lần/phút/IP
   @ApiOperation({ summary: 'Đăng nhập: trả access token, refresh token nằm trong cookie httpOnly' })
   async login(@Body() dto: LoginDto, @Res({ passthrough: true }) res: Response) {
     const { refreshToken, ...body } = await this.authService.login(dto);
@@ -55,6 +63,13 @@ export class AuthController {
     await this.authService.logout(this.readCookie(req));
     this.clearRefreshCookie(res);
     return null;
+  }
+
+  @Get('me')
+  @Auth()
+  @ApiOperation({ summary: 'Thông tin người dùng đang đăng nhập' })
+  me(@CurrentUser() user: AuthUser) {
+    return this.usersService.findOne(user.id);
   }
 
   private readCookie(req: Request): string | undefined {
