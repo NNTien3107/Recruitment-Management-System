@@ -30,3 +30,9 @@ await notificationService.notify(
 `candidateUserId` là ID tài khoản `User`. Ba sự kiện lịch phỏng vấn `INTERVIEW_SCHEDULED`, `INTERVIEW_RESCHEDULED` và `INTERVIEW_CANCELLED` nhận payload gồm `jobTitle`, `scheduledAt` (ISO 8601 UTC, ví dụ `date.toISOString()`) và `location` (địa chỉ hoặc liên kết phỏng vấn). Mẫu email hiển thị thời gian UTC.
 
 Khi tiến trình dừng sau lúc SMTP nhận email và trước lúc PostgreSQL ghi nhận đã gửi, lần chạy tiếp theo có thể gửi lại email đó.
+
+## Xem thông báo trong ứng dụng
+
+Ứng viên mở **Thông báo** ở thanh điều hướng hoặc vào `/candidate/notifications`. Màn hình hiển thị thông báo đổi trạng thái hồ sơ và thông báo tạo, đổi, hủy lịch phỏng vấn từ mới đến cũ. Ngày giờ hiển thị theo múi giờ của trình duyệt.
+
+`GET /api/candidate/notifications?page=1&pageSize=20` yêu cầu access token của ứng viên. API lấy danh tính từ phiên đăng nhập và trả danh sách kèm thông tin phân trang. Cấu hình SMTP chỉ ảnh hưởng đến gửi email. Thông báo đã lưu vẫn hiển thị trong ứng dụng khi SMTP tắt.
