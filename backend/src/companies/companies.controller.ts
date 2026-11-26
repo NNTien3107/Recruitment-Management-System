@@ -1,5 +1,9 @@
 import { Body, Controller, Get, Param, ParseUUIDPipe, Patch, Post, Query } from '@nestjs/common';
-import { ApiOperation, ApiQuery, ApiTags } from '@nestjs/swagger';
+import { ApiOperation, ApiTags } from '@nestjs/swagger';
+import { Role } from '@prisma/client';
+import { Auth } from '../auth/decorators/auth.decorator';
+import { CurrentUser } from '../auth/decorators/current-user.decorator';
+import type { AuthUser } from '../auth/types/auth-user';
 import { CompaniesService } from './companies.service';
 import { CreateCompanyDto } from './dto/create-company.dto';
 import { QueryCompaniesDto } from './dto/query-companies.dto';
@@ -11,11 +15,11 @@ export class CompaniesController {
   constructor(private readonly companiesService: CompaniesService) {}
 
   @Post()
+  @Auth(Role.RECRUITER, Role.ADMIN)
   @ApiOperation({ summary: 'Tạo thông tin công ty mới (Dành cho Recruiter - UC13)' })
-  // TODO: @UseGuards(JwtAuthGuard, RolesGuard)
-  // TODO: @Roles(Role.RECRUITER)
-  create(@Body() dto: CreateCompanyDto) {
-    return this.companiesService.create(dto);
+  create(@CurrentUser() user: AuthUser, @Body() dto: CreateCompanyDto) {
+    const ownerId = user.role === Role.ADMIN && dto.ownerId ? dto.ownerId : user.id;
+    return this.companiesService.create({ ...dto, ownerId });
   }
 
   @Get()
@@ -25,17 +29,11 @@ export class CompaniesController {
   }
 
   @Get('my-company')
+  @Auth(Role.RECRUITER, Role.ADMIN)
   @ApiOperation({ summary: 'Lấy thông tin công ty của recruiter hiện tại' })
-  @ApiQuery({
-    name: 'ownerId',
-    required: true,
-    description: 'ID của recruiter (tạm thời trước khi có Auth)',
-  })
-  // TODO: @UseGuards(JwtAuthGuard, RolesGuard)
-  // TODO: @Roles(Role.RECRUITER)
-  // TODO: Thay @Query bằng @CurrentUser() user: User sau khi có Auth
-  findMyCompany(@Query('ownerId', ParseUUIDPipe) ownerId: string) {
-    return this.companiesService.findByOwnerId(ownerId);
+  findMyCompany(@CurrentUser() user: AuthUser, @Query('ownerId') ownerId?: string) {
+    const targetOwnerId = user.role === Role.ADMIN && ownerId ? ownerId : user.id;
+    return this.companiesService.findByOwnerId(targetOwnerId);
   }
 
   @Get(':id')
@@ -45,10 +43,13 @@ export class CompaniesController {
   }
 
   @Patch(':id')
+  @Auth(Role.RECRUITER, Role.ADMIN)
   @ApiOperation({ summary: 'Cập nhật thông tin công ty' })
-  // TODO: @UseGuards(JwtAuthGuard, RolesGuard)
-  // TODO: @Roles(Role.RECRUITER, Role.ADMIN)
-  update(@Param('id', ParseUUIDPipe) id: string, @Body() dto: UpdateCompanyDto) {
-    return this.companiesService.update(id, dto);
+  update(
+    @Param('id', ParseUUIDPipe) id: string,
+    @CurrentUser() user: AuthUser,
+    @Body() dto: UpdateCompanyDto,
+  ) {
+    return this.companiesService.update(id, dto, user);
   }
 }

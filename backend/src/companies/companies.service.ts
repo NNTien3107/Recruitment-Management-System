@@ -1,10 +1,12 @@
 import {
+  BadRequestException,
   ConflictException,
   ForbiddenException,
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
 import { Prisma, Role } from '@prisma/client';
+import type { AuthUser } from '../auth/types/auth-user';
 import { buildPaginated } from '../common/utils/pagination';
 import { PrismaService } from '../prisma/prisma.service';
 import { CreateCompanyDto } from './dto/create-company.dto';
@@ -16,6 +18,10 @@ export class CompaniesService {
   constructor(private readonly prisma: PrismaService) {}
 
   async create(dto: CreateCompanyDto) {
+    if (!dto.ownerId) {
+      throw new BadRequestException('Thiếu thông tin người sở hữu công ty (ownerId)');
+    }
+
     // 1. Kiểm tra tài khoản người sở hữu
     const owner = await this.prisma.user.findUnique({ where: { id: dto.ownerId } });
     if (!owner) {
@@ -143,8 +149,12 @@ export class CompaniesService {
     return company;
   }
 
-  async update(id: string, dto: UpdateCompanyDto) {
-    await this.findOne(id);
+  async update(id: string, dto: UpdateCompanyDto, currentUser?: AuthUser) {
+    const company = await this.findOne(id);
+
+    if (currentUser && currentUser.role !== Role.ADMIN && company.ownerId !== currentUser.id) {
+      throw new ForbiddenException('Bạn chỉ có quyền cập nhật thông tin công ty của chính mình');
+    }
 
     return this.prisma.company.update({
       where: { id },

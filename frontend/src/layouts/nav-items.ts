@@ -7,7 +7,17 @@ export interface NavItem {
 
 /** Mỗi người thêm menu của module mình vào đây. */
 export const navItemsByRole: Record<Role, NavItem[]> = {
-  CANDIDATE: [{ to: '/candidate', label: 'Ứng viên' }],
-  RECRUITER: [{ to: '/recruiter', label: 'Nhà tuyển dụng' }],
-  ADMIN: [{ to: '/admin', label: 'Quản trị' }],
+  CANDIDATE: [
+    { to: '/jobs', label: 'Tìm việc làm' },
+    { to: '/candidate', label: 'Hồ sơ ứng viên' },
+  ],
+  RECRUITER: [
+    { to: '/jobs', label: 'Việc làm công khai' },
+    { to: '/recruiter/jobs', label: 'Quản lý tin đăng' },
+    { to: '/recruiter/company', label: 'Hồ sơ công ty' },
+  ],
+  ADMIN: [
+    { to: '/admin/jobs', label: 'Duyệt tin tuyển dụng' },
+    { to: '/admin/users', label: 'Quản lý người dùng' },
+  ],
 };

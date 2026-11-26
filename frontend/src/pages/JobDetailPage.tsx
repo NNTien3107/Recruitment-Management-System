@@ -1,14 +1,17 @@
 import { useEffect, useState } from 'react';
+import { useParams } from 'react-router-dom';
 import { fetchJobById } from '../api/jobs.api';
 import { AppLink } from '../components/Router';
 import type { JobItem } from '../types/models';
 import { formatDate, formatSalary, JOB_LEVEL_LABELS, JOB_TYPE_LABELS } from '../utils/formatters';
 
 interface JobDetailPageProps {
-  jobId: string;
+  jobId?: string;
 }
 
-export function JobDetailPage({ jobId }: JobDetailPageProps) {
+export function JobDetailPage({ jobId: propJobId }: JobDetailPageProps) {
+  const params = useParams<{ id: string }>();
+  const jobId = propJobId ?? params.id ?? '';
   const [job, setJob] = useState<JobItem | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);

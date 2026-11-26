@@ -1,14 +1,15 @@
 import { Body, Controller, Get, Param, ParseUUIDPipe, Patch, Query } from '@nestjs/common';
 import { ApiOperation, ApiTags } from '@nestjs/swagger';
+import { Role } from '@prisma/client';
+import { Auth } from '../auth/decorators/auth.decorator';
 import { AdminService } from './admin.service';
 import { QueryAdminJobsDto } from './dto/query-admin-jobs.dto';
 import { QueryAdminUsersDto } from './dto/query-admin-users.dto';
 import { RejectJobDto } from './dto/reject-job.dto';
 
 @ApiTags('admin')
+@Auth(Role.ADMIN)
 @Controller('admin')
-// TODO: @UseGuards(JwtAuthGuard, RolesGuard)
-// TODO: @Roles(Role.ADMIN)
 export class AdminController {
   constructor(private readonly adminService: AdminService) {}
 

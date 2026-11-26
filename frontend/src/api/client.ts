@@ -1,5 +1,5 @@
-const API_BASE_URL =
-  (import.meta.env.VITE_API_URL as string | undefined)?.replace(/\/+$/, '') || '/api';
+import axios from 'axios';
+import { api } from '../lib/api';
 
 export class ApiError extends Error {
   statusCode: number;
@@ -28,32 +28,31 @@ export function buildQueryString(
 }
 
 export async function apiRequest<T>(path: string, options: RequestInit = {}): Promise<T> {
-  const url = `${API_BASE_URL}${path.startsWith('/') ? path : `/${path}`}`;
+  const normalizedPath = path.startsWith('/') ? path : `/${path}`;
+  const method = (options.method ?? 'GET').toUpperCase();
+  const data: unknown =
+    typeof options.body === 'string' && options.body.length > 0
+      ? (JSON.parse(options.body) as unknown)
+      : options.body;
 
-  const headers: HeadersInit = {
-    'Content-Type': 'application/json',
-    ...options.headers,
-  };
-
-  const response = await fetch(url, {
-    ...options,
-    credentials: 'include',
-    headers,
-  });
-
-  const json = (await response.json().catch(() => null)) as {
-    success?: boolean;
-    message?: string | string[];
-    statusCode?: number;
-  } | null;
-
-  if (!response.ok || (json && json.success === false)) {
-    const rawMsg = json?.message;
-    const message = Array.isArray(rawMsg)
-      ? rawMsg.join(', ')
-      : rawMsg || `Lỗi kết nối máy chủ (${response.status})`;
-    throw new ApiError(message, json?.statusCode ?? response.status);
+  try {
+    const response = await api.request<T>({
+      url: normalizedPath,
+      method,
+      data,
+    });
+    return response.data;
+  } catch (error: unknown) {
+    if (axios.isAxiosError(error)) {
+      const status = error.response?.status ?? 500;
+      const body = error.response?.data as
+        { message?: string | string[]; statusCode?: number } | undefined;
+      const rawMsg = body?.message;
+      const message = Array.isArray(rawMsg)
+        ? rawMsg.join(', ')
+        : rawMsg || error.message || `Lỗi kết nối máy chủ (${status})`;
+      throw new ApiError(message, body?.statusCode ?? status);
+    }
+    throw error;
   }
-
-  return json as T;
 }
