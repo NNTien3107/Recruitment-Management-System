@@ -5,8 +5,8 @@ import {
   updateCompany,
   type CreateCompanyPayload,
 } from '../api/companies.api';
-import { RecruiterDevBar } from '../components/RecruiterDevBar';
 import { AppLink } from '../components/Router';
+import { useAuth } from '../features/auth/auth-context';
 import type { CompanyDetail } from '../types/models';
 import { formatDate } from '../utils/formatters';
 import { getStoredRecruiterId } from '../utils/recruiter-context';
@@ -62,8 +62,8 @@ function companyToFormState(company: CompanyDetail): CompanyFormState {
 }
 
 export function RecruiterCompanyPage() {
-  // TODO: Lấy user.id từ AuthContext sau khi ghép Auth của Tiến
-  const [ownerId, setOwnerId] = useState<string>(() => getStoredRecruiterId());
+  const { user } = useAuth();
+  const ownerId = user?.id ?? getStoredRecruiterId();
   const [company, setCompany] = useState<CompanyDetail | null>(null);
   const [loading, setLoading] = useState<boolean>(false);
   const [saving, setSaving] = useState<boolean>(false);
@@ -85,7 +85,7 @@ export function RecruiterCompanyPage() {
       setErrorMsg(null);
       setSuccessMsg(null);
       try {
-        const result = await fetchMyCompany(ownerId);
+        const result = await fetchMyCompany();
         if (!cancelled) {
           setCompany(result);
           if (result) {
@@ -208,8 +208,6 @@ export function RecruiterCompanyPage() {
 
   return (
     <div className="rms-page">
-      <RecruiterDevBar ownerId={ownerId} onOwnerIdChange={setOwnerId} />
-
       <div className="rms-container rms-page-section">
         <div className="rms-page-header">
           <div>

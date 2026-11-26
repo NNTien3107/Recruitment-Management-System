@@ -10,7 +10,7 @@ import type {
 import { apiRequest, buildQueryString } from './client';
 
 export interface QueryRecruiterJobsParams {
-  recruiterId: string;
+  recruiterId?: string;
   page?: number;
   pageSize?: number;
   status?: JobStatus | '';
@@ -18,7 +18,7 @@ export interface QueryRecruiterJobsParams {
 }
 
 export interface CreateJobPayload {
-  recruiterId: string;
+  recruiterId?: string;
   title: string;
   description: string;
   requirements?: string;
@@ -70,13 +70,12 @@ export async function fetchJobById(id: string): Promise<JobItem> {
 
 /**
  * Danh sách tin tuyển dụng của công ty thuộc Recruiter hiện tại (UC14)
- * Kết nối: GET /api/jobs/my-jobs?recruiterId=...
+ * Kết nối: GET /api/jobs/my-jobs
  */
 export async function fetchRecruiterJobs(
   params: QueryRecruiterJobsParams,
 ): Promise<PaginatedResponse<JobItem>> {
   const queryString = buildQueryString({
-    recruiterId: params.recruiterId,
     page: params.page ?? 1,
     pageSize: params.pageSize ?? 10,
     status: params.status || undefined,
@@ -100,50 +99,34 @@ export async function createJob(payload: CreateJobPayload): Promise<JobItem> {
 
 /**
  * Cập nhật tin tuyển dụng của Recruiter (UC14, FR-23, BR-08)
- * Kết nối: PATCH /api/jobs/:id?recruiterId=...
+ * Kết nối: PATCH /api/jobs/:id
  */
-export async function updateJob(
-  id: string,
-  recruiterId: string,
-  payload: UpdateJobPayload,
-): Promise<JobItem> {
-  const queryString = buildQueryString({ recruiterId });
-  const res = await apiRequest<ApiResponse<JobItem>>(
-    `/jobs/${encodeURIComponent(id)}${queryString}`,
-    {
-      method: 'PATCH',
-      body: JSON.stringify(payload),
-    },
-  );
+export async function updateJob(id: string, payload: UpdateJobPayload): Promise<JobItem> {
+  const res = await apiRequest<ApiResponse<JobItem>>(`/jobs/${encodeURIComponent(id)}`, {
+    method: 'PATCH',
+    body: JSON.stringify(payload),
+  });
   return res.data;
 }
 
 /**
  * Đóng tin tuyển dụng - ngừng nhận hồ sơ (UC15, FR-24)
- * Kết nối: PATCH /api/jobs/:id/close?recruiterId=...
+ * Kết nối: PATCH /api/jobs/:id/close
  */
-export async function closeJob(id: string, recruiterId: string): Promise<JobItem> {
-  const queryString = buildQueryString({ recruiterId });
-  const res = await apiRequest<ApiResponse<JobItem>>(
-    `/jobs/${encodeURIComponent(id)}/close${queryString}`,
-    {
-      method: 'PATCH',
-    },
-  );
+export async function closeJob(id: string): Promise<JobItem> {
+  const res = await apiRequest<ApiResponse<JobItem>>(`/jobs/${encodeURIComponent(id)}/close`, {
+    method: 'PATCH',
+  });
   return res.data;
 }
 
 /**
  * Xóa mềm tin tuyển dụng (UC14, FR-23, BR-05)
- * Kết nối: DELETE /api/jobs/:id?recruiterId=...
+ * Kết nối: DELETE /api/jobs/:id
  */
-export async function deleteJob(id: string, recruiterId: string): Promise<JobItem> {
-  const queryString = buildQueryString({ recruiterId });
-  const res = await apiRequest<ApiResponse<JobItem>>(
-    `/jobs/${encodeURIComponent(id)}${queryString}`,
-    {
-      method: 'DELETE',
-    },
-  );
+export async function deleteJob(id: string): Promise<JobItem> {
+  const res = await apiRequest<ApiResponse<JobItem>>(`/jobs/${encodeURIComponent(id)}`, {
+    method: 'DELETE',
+  });
   return res.data;
 }

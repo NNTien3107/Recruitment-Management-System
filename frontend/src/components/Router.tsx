@@ -1,29 +1,14 @@
-import type { AnchorHTMLAttributes, MouseEvent } from 'react';
-import { navigateTo } from '../utils/navigation';
+import type { AnchorHTMLAttributes } from 'react';
+import { Link } from 'react-router-dom';
 
 interface LinkProps extends AnchorHTMLAttributes<HTMLAnchorElement> {
   to: string;
 }
 
-export function AppLink({ to, onClick, children, ...rest }: LinkProps) {
-  const handleClick = (e: MouseEvent<HTMLAnchorElement>) => {
-    if (onClick) onClick(e);
-    if (
-      !e.defaultPrevented &&
-      e.button === 0 &&
-      !e.metaKey &&
-      !e.altKey &&
-      !e.ctrlKey &&
-      !e.shiftKey
-    ) {
-      e.preventDefault();
-      navigateTo(to);
-    }
-  };
-
+export function AppLink({ to, children, ...rest }: LinkProps) {
   return (
-    <a href={to} onClick={handleClick} {...rest}>
+    <Link to={to} {...rest}>
       {children}
-    </a>
+    </Link>
   );
 }

@@ -1,14 +1,17 @@
 import { useEffect, useState } from 'react';
+import { useParams } from 'react-router-dom';
 import { fetchCompanyById } from '../api/companies.api';
 import { AppLink } from '../components/Router';
 import type { CompanyDetail } from '../types/models';
 import { formatDate, formatSalary, JOB_LEVEL_LABELS, JOB_TYPE_LABELS } from '../utils/formatters';
 
 interface CompanyDetailPageProps {
-  companyId: string;
+  companyId?: string;
 }
 
-export function CompanyDetailPage({ companyId }: CompanyDetailPageProps) {
+export function CompanyDetailPage({ companyId: propCompanyId }: CompanyDetailPageProps) {
+  const params = useParams<{ id: string }>();
+  const companyId = propCompanyId ?? params.id ?? '';
   const [company, setCompany] = useState<CompanyDetail | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);

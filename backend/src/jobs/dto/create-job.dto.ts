@@ -17,9 +17,13 @@ import {
 } from 'class-validator';
 
 export class CreateJobDto {
-  @ApiProperty({ description: 'ID của tài khoản Recruiter tạo tin', format: 'uuid' })
+  @ApiPropertyOptional({
+    description: 'ID của tài khoản Recruiter tạo tin (tự động lấy từ JWT nếu đã đăng nhập)',
+    format: 'uuid',
+  })
+  @IsOptional()
   @IsUUID('4', { message: 'recruiterId phải là UUID v4 hợp lệ' })
-  recruiterId: string;
+  recruiterId?: string;
 
   @ApiProperty({
     description: 'Tiêu đề tin tuyển dụng',

@@ -9,8 +9,8 @@ import {
   type CreateJobPayload,
 } from '../api/jobs.api';
 import { Pagination } from '../components/Pagination';
-import { RecruiterDevBar } from '../components/RecruiterDevBar';
 import { AppLink } from '../components/Router';
+import { useAuth } from '../features/auth/auth-context';
 import type {
   CompanyDetail,
   JobItem,
@@ -96,8 +96,8 @@ function jobToFormState(job: JobItem): JobFormState {
 }
 
 export function RecruiterJobsPage() {
-  // TODO: Lấy user.id từ AuthContext sau khi ghép Auth của Tiến
-  const [ownerId, setOwnerId] = useState<string>(() => getStoredRecruiterId());
+  const { user } = useAuth();
+  const ownerId = user?.id ?? getStoredRecruiterId();
   const [company, setCompany] = useState<CompanyDetail | null>(null);
   const [checkingCompany, setCheckingCompany] = useState<boolean>(false);
 
@@ -147,14 +147,13 @@ export function RecruiterJobsPage() {
       setCheckingCompany(true);
       setErrorMsg(null);
       try {
-        const myCompany = await fetchMyCompany(ownerId);
+        const myCompany = await fetchMyCompany();
         if (cancelled) return;
         setCompany(myCompany);
 
         if (myCompany) {
           setLoadingJobs(true);
           const jobsResponse = await fetchRecruiterJobs({
-            recruiterId: ownerId,
             page,
             pageSize: 10,
             status: statusFilter,
@@ -289,7 +288,7 @@ export function RecruiterJobsPage() {
         );
       } else if (formMode === 'edit' && editingJob) {
         const wasApproved = editingJob.status === 'APPROVED';
-        const updated = await updateJob(editingJob.id, ownerId, {
+        const updated = await updateJob(editingJob.id, {
           ...basePayload,
           ...(editingJob.status === 'DRAFT' || editingJob.status === 'REJECTED'
             ? { status: form.initialStatus }
@@ -318,7 +317,7 @@ export function RecruiterJobsPage() {
     setErrorMsg(null);
     setSuccessMsg(null);
     try {
-      await updateJob(job.id, ownerId, { status: 'PENDING' });
+      await updateJob(job.id, { status: 'PENDING' });
       setSuccessMsg(`Đã gửi tin "${job.title}" sang trạng thái Chờ duyệt (PENDING)!`);
       setReloadKey((k) => k + 1);
     } catch (err) {
@@ -334,12 +333,12 @@ export function RecruiterJobsPage() {
 
     try {
       if (confirmAction.type === 'close') {
-        await closeJob(confirmAction.job.id, ownerId);
+        await closeJob(confirmAction.job.id);
         setSuccessMsg(
           `Đã đóng tin tuyển dụng "${confirmAction.job.title}" (UC15 - Ngừng nhận hồ sơ).`,
         );
       } else {
-        await deleteJob(confirmAction.job.id, ownerId);
+        await deleteJob(confirmAction.job.id);
         setSuccessMsg(
           `Đã xóa mềm tin tuyển dụng "${confirmAction.job.title}" (BR-05 - Bảo toàn lịch sử ứng tuyển).`,
         );
@@ -377,15 +376,6 @@ export function RecruiterJobsPage() {
 
   return (
     <div className="rms-page">
-      <RecruiterDevBar
-        ownerId={ownerId}
-        onOwnerIdChange={(nextId) => {
-          setOwnerId(nextId);
-          setPage(1);
-          setFormMode('closed');
-        }}
-      />
-
       <div className="rms-container rms-page-section">
         <div className="rms-page-header">
           <div>

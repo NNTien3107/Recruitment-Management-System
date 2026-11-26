@@ -11,9 +11,13 @@ import {
 } from 'class-validator';
 
 export class CreateCompanyDto {
-  @ApiProperty({ description: 'ID của tài khoản Recruiter sở hữu công ty', format: 'uuid' })
+  @ApiPropertyOptional({
+    description: 'ID của tài khoản Recruiter sở hữu công ty (tự động lấy từ JWT nếu đã đăng nhập)',
+    format: 'uuid',
+  })
+  @IsOptional()
   @IsUUID('4', { message: 'ownerId phải là UUID v4 hợp lệ' })
-  ownerId: string;
+  ownerId?: string;
 
   @ApiProperty({ description: 'Tên công ty', maxLength: 200, example: 'Tech Corp Vietnam' })
   @Transform(({ value }: { value: unknown }) => (typeof value === 'string' ? value.trim() : value))

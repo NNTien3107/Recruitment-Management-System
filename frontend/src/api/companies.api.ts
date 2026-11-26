@@ -10,7 +10,7 @@ export interface QueryCompaniesParams {
 }
 
 export interface CreateCompanyPayload {
-  ownerId: string;
+  ownerId?: string;
   name: string;
   description?: string;
   website?: string;
@@ -51,13 +51,12 @@ export async function fetchCompanyById(id: string): Promise<CompanyDetail> {
 
 /**
  * Lấy thông tin công ty của Recruiter hiện tại (UC13.1)
- * Kết nối: GET /api/companies/my-company?ownerId=...
+ * Kết nối: GET /api/companies/my-company
  * Trả về null nếu Recruiter chưa tạo công ty (404 Not Found).
  */
-export async function fetchMyCompany(ownerId: string): Promise<CompanyDetail | null> {
+export async function fetchMyCompany(): Promise<CompanyDetail | null> {
   try {
-    const queryString = buildQueryString({ ownerId });
-    const res = await apiRequest<ApiResponse<CompanyDetail>>(`/companies/my-company${queryString}`);
+    const res = await apiRequest<ApiResponse<CompanyDetail>>('/companies/my-company');
     return res.data;
   } catch (err) {
     if (err instanceof ApiError && err.statusCode === 404) {

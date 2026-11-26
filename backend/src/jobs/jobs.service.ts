@@ -20,6 +20,10 @@ export class JobsService {
    * BR-04: Recruiter phải có thông tin công ty trước khi đăng tin.
    */
   async create(dto: CreateJobDto) {
+    if (!dto.recruiterId) {
+      throw new BadRequestException('Thiếu thông tin nhà tuyển dụng (recruiterId)');
+    }
+
     // 1. Kiểm tra Recruiter đã có công ty chưa (BR-04)
     const company = await this.prisma.company.findUnique({
       where: { ownerId: dto.recruiterId },
