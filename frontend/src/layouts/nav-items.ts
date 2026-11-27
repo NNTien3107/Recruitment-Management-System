@@ -10,6 +10,7 @@ export const navItemsByRole: Record<Role, NavItem[]> = {
   CANDIDATE: [
     { to: '/jobs', label: 'Tìm việc làm' },
     { to: '/candidate', label: 'Hồ sơ ứng viên' },
+    { to: '/candidate/notifications', label: 'Thông báo' },
   ],
   RECRUITER: [
     { to: '/jobs', label: 'Việc làm công khai' },

@@ -3,6 +3,7 @@ import { GuestOnlyRoute } from '../features/auth/GuestOnlyRoute';
 import { LoginPage } from '../features/auth/LoginPage';
 import { ProtectedRoute } from '../features/auth/ProtectedRoute';
 import { RegisterPage } from '../features/auth/RegisterPage';
+import { CandidateNotificationsPage } from '../features/notifications/CandidateNotificationsPage';
 import { MainLayout } from '../layouts/MainLayout';
 import { AdminPage } from '../pages/AdminPage';
 import { CompanyDetailPage } from '../pages/CompanyDetailPage';
@@ -38,7 +39,10 @@ export const router = createBrowserRouter([
       // Khu vực Candidate (Oanh phụ trách)
       {
         element: <ProtectedRoute roles={['CANDIDATE']} />,
-        children: [{ path: 'candidate', element: <PlaceholderPage title="Khu vực ứng viên" /> }],
+        children: [
+          { path: 'candidate', element: <PlaceholderPage title="Khu vực ứng viên" /> },
+          { path: 'candidate/notifications', element: <CandidateNotificationsPage /> },
+        ],
       },
 
       // Khu vực Recruiter: Quản lý công ty & Tin tuyển dụng (UC13, UC14, UC15 - Nam)
