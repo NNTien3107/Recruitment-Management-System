@@ -5,6 +5,7 @@ import { LoginPage } from '../features/auth/LoginPage';
 import { ProtectedRoute } from '../features/auth/ProtectedRoute';
 import { RegisterPage } from '../features/auth/RegisterPage';
 import { CandidateNotificationsPage } from '../features/notifications/CandidateNotificationsPage';
+import { RecruiterDashboardPage } from '../features/recruiter/RecruiterDashboardPage';
 import { MainLayout } from '../layouts/MainLayout';
 import { AdminPage } from '../pages/AdminPage';
 import { CompanyDetailPage } from '../pages/CompanyDetailPage';
@@ -53,6 +54,7 @@ export const router = createBrowserRouter([
           { path: 'recruiter', element: <RecruiterJobsPage /> },
           { path: 'recruiter/jobs', element: <RecruiterJobsPage /> },
           { path: 'recruiter/company', element: <RecruiterCompanyPage /> },
+          { path: 'recruiter/dashboard', element: <RecruiterDashboardPage /> },
         ],
       },
 
