@@ -33,6 +33,18 @@ describe('JobsService', () => {
     service = module.get(JobsService);
   });
 
+  it('scopes the dashboard count to the recruiter and distinguishes zero jobs from pending data', async () => {
+    prisma.job.count.mockResolvedValue(0);
+
+    await expect(service.getRecruiterOverview('recruiter-id')).resolves.toEqual({
+      jobCount: 0,
+      applicationCount: null,
+    });
+    expect(prisma.job.count).toHaveBeenCalledWith({
+      where: { deletedAt: null, company: { ownerId: 'recruiter-id' } },
+    });
+  });
+
   describe('create (BR-04)', () => {
     const dto: CreateJobDto = {
       recruiterId: '11111111-1111-1111-1111-111111111111',

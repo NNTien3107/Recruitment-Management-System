@@ -45,6 +45,15 @@ export class JobsController {
     return this.jobsService.findAllByRecruiter(recruiterId, query);
   }
 
+  @Get('my-overview')
+  @Auth(Role.RECRUITER)
+  @ApiOperation({
+    summary: 'Số liệu tuyển dụng của công ty thuộc Recruiter hiện tại (UC20, FR-30)',
+  })
+  getMyOverview(@CurrentUser('id') recruiterId: string) {
+    return this.jobsService.getRecruiterOverview(recruiterId);
+  }
+
   @Get(':id')
   @ApiOperation({
     summary: 'Xem chi tiết tin tuyển dụng và công ty (UC06, FR-20 - chỉ tin đã duyệt và đang mở)',

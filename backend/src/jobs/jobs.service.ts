@@ -165,6 +165,15 @@ export class JobsService {
     return buildPaginated(items, total, page, pageSize);
   }
 
+  async getRecruiterOverview(recruiterId: string) {
+    const jobCount = await this.prisma.job.count({
+      where: { deletedAt: null, company: { ownerId: recruiterId } },
+    });
+
+    // Applications will supply this count once its tables are available.
+    return { jobCount, applicationCount: null };
+  }
+
   /**
    * Danh sách tin tuyển dụng của công ty thuộc về Recruiter (Quản lý tin tuyển dụng)
    */
