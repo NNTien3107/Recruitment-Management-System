@@ -1,4 +1,5 @@
 import { createBrowserRouter } from 'react-router-dom';
+import { AdminDashboardPage } from '../features/admin/AdminDashboardPage';
 import { GuestOnlyRoute } from '../features/auth/GuestOnlyRoute';
 import { LoginPage } from '../features/auth/LoginPage';
 import { ProtectedRoute } from '../features/auth/ProtectedRoute';
@@ -62,6 +63,7 @@ export const router = createBrowserRouter([
           { path: 'admin', element: <AdminPage key="admin-default" /> },
           { path: 'admin/jobs', element: <AdminPage key="admin-jobs" initialTab="jobs" /> },
           { path: 'admin/users', element: <AdminPage key="admin-users" initialTab="users" /> },
+          { path: 'admin/dashboard', element: <AdminDashboardPage /> },
         ],
       },
 

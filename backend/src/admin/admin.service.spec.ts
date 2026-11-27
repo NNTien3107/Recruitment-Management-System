@@ -46,6 +46,18 @@ describe('AdminService', () => {
     service = module.get(AdminService);
   });
 
+  it('returns system-wide counts and excludes soft-deleted jobs', async () => {
+    prisma.$transaction.mockResolvedValue([5, 2]);
+
+    await expect(service.getDashboard()).resolves.toEqual({
+      userCount: 5,
+      jobCount: 2,
+      applicationCount: null,
+    });
+    expect(prisma.user.count).toHaveBeenCalledWith();
+    expect(prisma.job.count).toHaveBeenCalledWith({ where: { deletedAt: null } });
+  });
+
   describe('findAllUsers (UC21, FR-31)', () => {
     it('trả về danh sách người dùng và meta phân trang, hỗ trợ lọc theo role, isLocked, keyword', async () => {
       prisma.$transaction.mockResolvedValue([
