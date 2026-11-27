@@ -26,6 +26,16 @@ export class AdminService {
     private readonly authService: AuthService,
   ) {}
 
+  async getDashboard() {
+    const [userCount, jobCount] = await this.prisma.$transaction([
+      this.prisma.user.count(),
+      this.prisma.job.count({ where: { deletedAt: null } }),
+    ]);
+
+    // Applications will supply this count once its tables are available.
+    return { userCount, jobCount, applicationCount: null };
+  }
+
   /**
    * Danh sách người dùng dành cho Admin quản lý (UC21, FR-31)
    * Hỗ trợ lọc theo vai trò (CANDIDATE, RECRUITER, ADMIN), trạng thái khóa (isLocked) và tìm kiếm theo email/họ tên.

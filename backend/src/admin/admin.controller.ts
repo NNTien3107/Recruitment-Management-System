@@ -13,6 +13,12 @@ import { RejectJobDto } from './dto/reject-job.dto';
 export class AdminController {
   constructor(private readonly adminService: AdminService) {}
 
+  @Get('dashboard')
+  @ApiOperation({ summary: 'Tổng quan hệ thống tuyển dụng (UC24, FR-34)' })
+  getDashboard() {
+    return this.adminService.getDashboard();
+  }
+
   @Get('users')
   @ApiOperation({
     summary:

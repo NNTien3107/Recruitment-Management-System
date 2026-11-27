@@ -18,6 +18,7 @@ export const navItemsByRole: Record<Role, NavItem[]> = {
     { to: '/recruiter/company', label: 'Hồ sơ công ty' },
   ],
   ADMIN: [
+    { to: '/admin/dashboard', label: 'Tổng quan hệ thống' },
     { to: '/admin/jobs', label: 'Duyệt tin tuyển dụng' },
     { to: '/admin/users', label: 'Quản lý người dùng' },
   ],
